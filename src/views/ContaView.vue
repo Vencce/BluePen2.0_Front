@@ -430,4 +430,7 @@ input[type='file'] {
 .status-cancelado {
   background-color: #dc3545;
 }
+.status-entregue {
+  background-color: #3f51b5;
+}
 </style>

@@ -29,39 +29,61 @@ onMounted(() => {
 <template>
   <div class="page-wrapper">
     <HeaderComponentLoja />
-    <main class="loja-container">
-      <h1>Nosso Produto</h1>
+    
+    <section class="hero-banner">
+        <div class="hero-content">
+            <h1>Qualidade que inspira.</h1>
+            <p>Encontre a caneta perfeita para cada traço da sua história.</p>
+            <a href="#produtos" class="btn-hero">Ver Coleção</a>
+        </div>
+    </section>
+
+    <main class="loja-container" id="produtos">
+      <div class="section-header">
+        <h2>Nossos Produtos</h2>
+        <div class="line"></div>
+      </div>
 
       <div v-if="erroCarregamento">
         <p class="erro-api">{{ erroCarregamento }}</p>
       </div>
 
       <div v-else-if="produtos.length === 0">
-        <p>Carregando produtos...</p>
+        <p class="loading-text">Carregando catálogo...</p>
       </div>
 
       <div class="produto-grid" v-else>
         <div class="produto-card" v-for="produto in produtos" :key="produto.id">
-          <div class="produto-imagem">
-            <img :src="produto.imagem" :alt="produto.nome" />
+          
+          <div class="card-image-wrapper">
+            <img :src="produto.imagem" :alt="produto.nome" class="produto-img" />
+            <div class="card-overlay" v-if="produto.estoque <= 0">
+                <span class="badge-esgotado">Esgotado</span>
+            </div>
           </div>
 
           <div class="produto-info">
-            <h3 class="produto-nome">{{ produto.nome }}</h3>
-
-            <p class="produto-preco">
-              R$ {{ parseFloat(produto.preco).toFixed(2).replace('.', ',') }}
-            </p>
-
-            <div v-if="produto.estoque > 0">
-              <button @click="cartStore.addItem(produto)" class="btn btn-comprar">
-                Adicionar ao Carrinho
-              </button>
-              <p class="estoque-aviso">Disponível: {{ produto.estoque }}</p>
+            <div class="info-top">
+                <h3 class="produto-nome">{{ produto.nome }}</h3>
+                <span class="produto-categoria">Escritório</span>
             </div>
 
-            <div v-else>
-              <button class="btn btn-comprar btn-esgotado" disabled>Esgotado</button>
+            <div class="info-bottom">
+                <p class="produto-preco">
+                R$ {{ parseFloat(produto.preco).toFixed(2).replace('.', ',') }}
+                </p>
+
+                <div v-if="produto.estoque > 0">
+                    <button @click="cartStore.addItem(produto)" class="btn-add-cart">
+                        Adicionar 
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                    </button>
+                    <p class="estoque-aviso">{{ produto.estoque }} unidades disponíveis</p>
+                </div>
+
+                <div v-else>
+                    <button class="btn-esgotado" disabled>Indisponível</button>
+                </div>
             </div>
           </div>
         </div>
@@ -73,69 +95,150 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.erro-api {
-  color: #dc3545;
-  font-size: 1.2rem;
-  text-align: center;
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: Arial, sans-serif;
-}
+* { box-sizing: border-box; }
 
 .page-wrapper {
-  background-color: #f9f9f9;
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
+  background-color: #f8fafc;
+  font-family: 'Inter', sans-serif;
 }
 
-nav {
-  display: flex;
-  align-items: center;
+.hero-banner {
+    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+    color: white;
+    padding: 4rem 2rem;
+    text-align: center;
+    border-radius: 0 0 20px 20px;
+    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.2);
+    margin-bottom: 3rem;
+}
+
+.hero-content {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.hero-banner h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    letter-spacing: -1px;
+}
+
+.hero-banner p {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    opacity: 0.9;
+}
+
+.btn-hero {
+    display: inline-block;
+    background-color: white;
+    color: #1d4ed8;
+    padding: 12px 30px;
+    border-radius: 50px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.btn-hero:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
 }
 
 .loja-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  padding: 0 2rem 4rem;
+  flex-grow: 1;
+  width: 100%;
 }
 
-h1 {
-  font-size: 2.5rem;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 0.5rem;
-  text-align: center;
+.section-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.section-header h2 {
+    font-size: 2rem;
+    color: #1e293b;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.line {
+    width: 60px;
+    height: 4px;
+    background-color: #3b82f6;
+    margin: 0 auto;
+    border-radius: 2px;
+}
+
+/* Grid Flex para centralizar itens únicos */
+.produto-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2rem;
+  width: 100%;
 }
 
 .produto-card {
   background-color: white;
-  border: 1px solid #ddd;
-  border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  border-radius: 16px;
   overflow: hidden;
-  transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
+  transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
+  border: 1px solid #e2e8f0;
+  width: 280px; /* Largura fixa para o card ficar consistente */
+  flex-grow: 0;
 }
 
 .produto-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  transform: translateY(-8px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.08);
+  border-color: #cbd5e1;
 }
 
-.produto-imagem img {
+.card-image-wrapper {
+    position: relative;
+    height: 220px;
+    background-color: #f1f5f9;
+    overflow: hidden;
+}
+
+.produto-img {
   width: 100%;
-  height: 250px;
-  object-fit: cover;
-  display: block;
+  height: 100%;
+  object-fit: contain;
+  padding: 20px;
+  transition: transform 0.3s ease;
+}
+
+.produto-card:hover .produto-img {
+    transform: scale(1.05);
+}
+
+.card-overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(255,255,255,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.badge-esgotado {
+    background-color: #ef4444;
+    color: white;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
 }
 
 .produto-info {
@@ -143,54 +246,81 @@ h1 {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
+  justify-content: space-between;
 }
 
 .produto-nome {
   font-size: 1.1rem;
-  font-weight: 600;
-  color: #333;
-  min-height: 44px;
+  font-weight: 700;
+  color: #334155;
+  margin: 0 0 5px 0;
+  line-height: 1.4;
+}
+
+.produto-categoria {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.info-bottom {
+    margin-top: 1.5rem;
 }
 
 .produto-preco {
-  font-size: 1.25rem;
-  font-weight: bold;
-  color: #007bff;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #3b82f6;
   margin-bottom: 1rem;
-  margin-top: auto;
 }
 
-.btn-comprar {
+.btn-add-cart {
   width: 100%;
-  font-size: 1rem;
-  font-weight: bold;
-  padding: 12px 15px;
-  background-color: #007bff;
+  padding: 12px;
+  background-color: #3b82f6;
   color: white;
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
-  text-decoration: none;
-  text-align: center;
+  font-weight: 600;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background-color 0.2s;
 }
 
-.btn-comprar:hover {
-  background-color: #0056b3;
+.btn-add-cart:hover {
+  background-color: #2563eb;
 }
 
 .btn-esgotado {
-  background-color: #6c757d;
+  width: 100%;
+  padding: 12px;
+  background-color: #e2e8f0;
+  color: #94a3b8;
+  border: none;
+  border-radius: 8px;
   cursor: not-allowed;
-  opacity: 0.7;
+  font-weight: 600;
 }
-.btn-esgotado:hover {
-  background-color: #6c757d;
-}
+
 .estoque-aviso {
-  font-size: 0.8rem;
-  color: #555;
+  font-size: 0.75rem;
+  color: #64748b;
   text-align: center;
-  margin-top: 8px;
+  margin-top: 10px;
+}
+
+.erro-api { color: #ef4444; text-align: center; font-weight: 500; margin-top: 2rem; }
+.loading-text { color: #64748b; text-align: center; margin-top: 2rem; }
+
+@media (max-width: 768px) {
+    .hero-banner h1 { font-size: 2rem; }
+    .card-image-wrapper { height: 180px; }
+    .produto-preco { font-size: 1.3rem; }
+    .produto-card { width: 100%; max-width: 300px; }
 }
 </style>

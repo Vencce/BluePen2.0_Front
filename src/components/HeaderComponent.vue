@@ -23,9 +23,17 @@ const fazerLogout = () => {
             <router-link to="/admin-dashboard">Dashboard</router-link>
           </li>
           <li>
-            <router-link to="/inventario">Inventario</router-link>
+            <router-link to="/inventario">Inventário</router-link>
           </li>
-          <li><RouterLink to="/relatorios">Relatorios</RouterLink></li>
+          <li>
+            <RouterLink to="/relatorios">Financeiro</RouterLink>
+          </li>
+          <li>
+            <RouterLink to="/relatorios/produtos">Produtos</RouterLink>
+          </li>
+          <li>
+            <RouterLink to="/relatorios/insumos">Insumos</RouterLink>
+          </li>
           <li>
             <router-link to="/admin/pedidos" class="link-card"> Gerenciar Pedidos </router-link>
           </li>

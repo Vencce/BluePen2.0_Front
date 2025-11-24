@@ -2,57 +2,58 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import axios from 'axios'
 import { useAuthStore } from '@/stores/auth'
-import HeaderComponent from '@/components/HeaderComponent.vue'
+import AdminLayout from '@/components/AdminLayout.vue'
 
 const authStore = useAuthStore()
 
 const produtos = ref([])
 const insumos = ref([]) 
+const maquinas = ref([]) 
 
 const loading = ref(true)
 const errorMessage = ref(null)
 
-const showAddStockModal = ref(false)
-const selectedProductId = ref(null)
-const stockQuantityToAdd = ref(1)
-const addStockError = ref(null)
-const addStockSuccess = ref(null)
+// --- Modal de Ordem de Produção ---
+const showProductionModal = ref(false)
+const productionError = ref(null)
+const productionSuccess = ref(null)
+const novaOrdem = ref({
+  produto_acabado: null,
+  quantidade_produzir: 1,
+  maquina: null,
+  data_inicio_prevista: new Date().toISOString().split('T')[0],
+  observacoes: ''
+})
 
+// --- Modal de Compra de Insumo ---
 const showAddInsumoModal = ref(false)
 const selectedInsumoId = ref(null)
 const insumoQuantityToAdd = ref(1)
 const insumoCustoUnitario = ref(0.01)
-
 const addInsumoError = ref(null)
 const addInsumoSuccess = ref(null)
+
 const selectedProduct = computed(() => {
-  return produtos.value.find(p => p.id === selectedProductId.value)
-})
-const selectedInsumo = computed(() => {
-  return insumos.value.find(i => i.id === selectedInsumoId.value)
+  return produtos.value.find(p => p.id === novaOrdem.value.produto_acabado)
 })
 
 const carregarInventario = async () => {
   loading.value = true
   errorMessage.value = null
   try {
-    const [responseProdutos, responseInsumos] = await Promise.all([
-      axios.get(
-        'http://127.0.0.1:8000/api/produtos/',
-        { headers: { 'Authorization': `Token ${authStore.token}` } }
-      ),
-      axios.get(
-        'http://127.0.0.1:8000/api/fabrica/insumos/',
-        { headers: { 'Authorization': `Token ${authStore.token}` } }
-      )
+    const [resProdutos, resInsumos, resMaquinas] = await Promise.all([
+      axios.get('http://127.0.0.1:8000/api/produtos/', { headers: { 'Authorization': `Token ${authStore.token}` } }),
+      axios.get('http://127.0.0.1:8000/api/fabrica/insumos/', { headers: { 'Authorization': `Token ${authStore.token}` } }),
+      axios.get('http://127.0.0.1:8000/api/fabrica/maquinas/', { headers: { 'Authorization': `Token ${authStore.token}` } })
     ])
     
-    produtos.value = responseProdutos.data
-    insumos.value = responseInsumos.data
+    produtos.value = resProdutos.data
+    insumos.value = resInsumos.data
+    maquinas.value = resMaquinas.data
 
   } catch (error) {
-    console.error('Erro ao carregar inventário:', error.response?.data || error.message)
-    errorMessage.value = 'Não foi possível carregar o inventário.'
+    console.error('Erro ao carregar inventário:', error)
+    errorMessage.value = 'Não foi possível carregar os dados.'
   } finally {
     loading.value = false
   }
@@ -71,51 +72,65 @@ const formatNumber = (value) => {
     return numericValue; 
 }
 
-
-const openAddStockModal = () => {
-  addStockError.value = null
-  addStockSuccess.value = null
-  stockQuantityToAdd.value = 1
-  selectedProductId.value = produtos.value.length > 0 ? produtos.value[0].id : null
-  showAddStockModal.value = true
+// --- Lógica da Ordem de Produção ---
+const openProductionModal = () => {
+  productionError.value = null
+  productionSuccess.value = null
+  novaOrdem.value = {
+    produto_acabado: produtos.value.length > 0 ? produtos.value[0].id : null,
+    quantidade_produzir: 100,
+    maquina: maquinas.value.length > 0 ? maquinas.value[0].id : null,
+    data_inicio_prevista: new Date().toISOString().split('T')[0],
+    observacoes: 'Solicitado via Inventário'
+  }
+  showProductionModal.value = true
 }
 
-const closeAddStockModal = () => {
-  showAddStockModal.value = false
+const closeProductionModal = () => {
+  showProductionModal.value = false
 }
 
-const submitAddStock = async () => {
-  addStockError.value = null
-  addStockSuccess.value = null
-  if (!selectedProductId.value || stockQuantityToAdd.value <= 0) {
-    addStockError.value = 'Selecione um produto e uma quantidade válida.'
+const submitOrdemProducao = async () => {
+  productionError.value = null
+  productionSuccess.value = null
+
+  if (!novaOrdem.value.produto_acabado || !novaOrdem.value.maquina || novaOrdem.value.quantidade_produzir <= 0) {
+    productionError.value = 'Preencha todos os campos obrigatórios.'
     return
   }
+
   try {
-    const product = produtos.value.find(p => p.id === selectedProductId.value);
+    // Correção aqui: Enviando com os nomes de campos que o Serializer espera (maquina_id, funcionario_id)
+    const payload = {
+      produto_acabado: novaOrdem.value.produto_acabado,
+      quantidade_produzir: novaOrdem.value.quantidade_produzir,
+      data_inicio_prevista: novaOrdem.value.data_inicio_prevista,
+      observacoes: novaOrdem.value.observacoes,
+      maquina_id: novaOrdem.value.maquina,       
+      funcionario_id: authStore.user.id          
+    }
+
     await axios.post(
-      'http://127.0.0.1:8000/api/fabrica/movimentos-produto/',
-      {
-        produto_id: selectedProductId.value,
-        tipo: 'ENTRADA',
-        quantidade: stockQuantityToAdd.value,
-        custo_producao_unitario: product.custo_base_producao_unitario || 0, 
-        referencia_tabela: 'Inventario Manual', 
-      },
+      'http://127.0.0.1:8000/api/fabrica/ordens-producao/',
+      payload,
       { headers: { 'Authorization': `Token ${authStore.token}` } }
     )
-    addStockSuccess.value = `Estoque de ${selectedProduct.value.nome} adicionado.`
-    await carregarInventario() 
-    setTimeout(() => closeAddStockModal(), 1500)
+    
+    productionSuccess.value = "Ordem de Produção criada com sucesso! Aguarde a aprovação no Controle de Qualidade."
+    
+    setTimeout(() => closeProductionModal(), 2500)
+
   } catch (error) {
-    addStockError.value = 'Falha ao adicionar estoque.'
+    console.error('Erro ao criar ordem:', error.response?.data || error)
+    productionError.value = 'Falha ao criar ordem de produção.'
   }
 }
 
+// --- Lógica de Compra de Insumo ---
 const openAddInsumoModal = () => {
   addInsumoError.value = null
   addInsumoSuccess.value = null
-  insumoQuantityToAdd.value = 1
+  insumoQuantityToAdd.value = 100
   
   if (insumos.value.length > 0) {
     selectedInsumoId.value = insumos.value[0].id
@@ -124,13 +139,10 @@ const openAddInsumoModal = () => {
     selectedInsumoId.value = null
     insumoCustoUnitario.value = 0.01
   }
-  
   showAddInsumoModal.value = true
 }
 
-const closeAddInsumoModal = () => {
-  showAddInsumoModal.value = false
-}
+const closeAddInsumoModal = () => showAddInsumoModal.value = false
 
 watch(selectedInsumoId, (newId) => {
   if (newId) {
@@ -145,16 +157,8 @@ const submitAddInsumo = async () => {
   addInsumoError.value = null
   addInsumoSuccess.value = null
 
-  if (!selectedInsumoId.value || insumoQuantityToAdd.value <= 0 || insumoCustoUnitario.value < 0) {
-    addInsumoError.value = 'Selecione um insumo e preencha valores válidos.'
-    return
-  }
-
   const insumo = insumos.value.find(i => i.id === selectedInsumoId.value);
-  if (!insumo) {
-    addInsumoError.value = 'Insumo não encontrado.';
-    return;
-  }
+  if (!insumo) return;
 
   try {
     await axios.post(
@@ -170,7 +174,6 @@ const submitAddInsumo = async () => {
     )
     
     const valorTotalDespesa = insumoQuantityToAdd.value * insumoCustoUnitario.value;
-    
     await axios.post(
       'http://127.0.0.1:8000/api/fabrica/fluxo-caixa/',
       {
@@ -183,15 +186,12 @@ const submitAddInsumo = async () => {
       { headers: { 'Authorization': `Token ${authStore.token}` } }
     )
     
-    addInsumoSuccess.value = `Estoque de ${insumo.nome} atualizado e despesa registrada.`
-    
+    addInsumoSuccess.value = `Estoque de ${insumo.nome} atualizado.`
     await carregarInventario() 
-    
     setTimeout(() => closeAddInsumoModal(), 1500)
 
   } catch (error) {
-    console.error('Erro ao adicionar insumo:', error.response?.data || error.message)
-    addInsumoError.value = 'Falha ao adicionar insumo. (Verifique Estoque e Caixa)'
+    addInsumoError.value = 'Falha ao registrar compra.'
   }
 }
 
@@ -201,24 +201,22 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="page-wrapper">
-    <HeaderComponent />
-    
-    <main class="inventario-container">
+  <AdminLayout>
+    <div class="inventario-container">
       
-      <section class="inventory-section">
+      <section class="inventory-section card-container">
         <div class="header-inventario">
-          <h1>Inventário de Produtos (Acabados)</h1>
-          <button @click="openAddStockModal" class="add-stock-button">
-            Adicionar Estoque (Produção)
+          <h2>Produtos (Acabados)</h2>
+          <button @click="openProductionModal" class="btn-action">
+            + Criar Ordem de Produção
           </button>
         </div>
         
         <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
         <div v-else-if="loading" class="loading-message">Carregando...</div>
         <div v-else-if="produtos.length === 0" class="no-data-message">Nenhum produto encontrado.</div>
-        <div v-else class="table-container">
-          <table class="inventario-table">
+        <div v-else class="table-container table-responsive">
+          <table class="clean-table">
             <thead>
               <tr>
                 <th>ID</th>
@@ -236,8 +234,9 @@ onMounted(() => {
                 <td>R$ {{ formatDecimal(produto.custo_base_producao_unitario) }}</td>
                 <td>
                   <span :class="{
-                    'estoque-baixo': produto.estoque > 0 && produto.estoque <= 10, 
-                    'estoque-zero': produto.estoque <= 0
+                    'badge badge-warning': produto.estoque > 0 && produto.estoque <= 10, 
+                    'badge badge-danger': produto.estoque <= 0,
+                    'badge badge-success': produto.estoque > 10
                   }">
                     {{ produto.estoque }}
                   </span>
@@ -247,30 +246,29 @@ onMounted(() => {
           </table>
         </div>
       </section>
-      <hr class="divider">
 
-      <section class="inventory-section">
+      <section class="inventory-section card-container mt-4">
         <div class="header-inventario">
-          <h1>Inventário de Insumos (Matéria-Prima)</h1>
-          <button @click="openAddInsumoModal" class="add-stock-button btn-insumo">
-            Adicionar Insumo (Compra)
+          <h2>Insumos (Matéria-Prima)</h2>
+          <button @click="openAddInsumoModal" class="btn-action btn-insumo">
+            + Compra de Insumo
           </button>
         </div>
         
         <div v-if="!errorMessage && loading" class="loading-message">Carregando...</div>
         <div v-else-if="insumos.length === 0 && !loading" class="no-data-message">Nenhum insumo encontrado.</div>
         
-        <div v-else-if="insumos.length > 0" class="table-container">
-          <table class="inventario-table">
+        <div v-else-if="insumos.length > 0" class="table-container table-responsive">
+          <table class="clean-table">
             <thead>
               <tr>
                 <th>ID</th>
                 <th>Nome</th>
                 <th>Fornecedor</th>
                 <th>Custo Unit.</th>
-                <th>Estoque Atual</th>
+                <th>Estoque</th>
                 <th>Un.</th>
-                <th>Estoque Mín.</th>
+                <th>Mínimo</th>
               </tr>
             </thead>
             <tbody>
@@ -281,8 +279,9 @@ onMounted(() => {
                 <td>{{ formatCurrency(insumo.custo_unitario) }}</td>
                 <td>
                   <span :class="{
-                    'estoque-baixo': insumo.quantidade_estoque <= insumo.estoque_minimo && insumo.quantidade_estoque > 0, 
-                    'estoque-zero': insumo.quantidade_estoque <= 0
+                    'badge badge-warning': insumo.quantidade_estoque <= insumo.estoque_minimo && insumo.quantidade_estoque > 0, 
+                    'badge badge-danger': insumo.quantidade_estoque <= 0,
+                     'badge badge-success': insumo.quantidade_estoque > insumo.estoque_minimo
                   }">
                     {{ formatNumber(insumo.quantidade_estoque) }}
                   </span>
@@ -294,28 +293,50 @@ onMounted(() => {
           </table>
         </div>
       </section>
-      </main>
+    </div>
 
-    <div v-if="showAddStockModal" class="modal-overlay" @click.self="closeAddStockModal">
+    <div v-if="showProductionModal" class="modal-overlay" @click.self="closeAddStockModal">
       <div class="modal-content">
-        <h2>Adicionar Estoque de Produto (Manual)</h2>
-        <div v-if="addStockError" class="modal-error">{{ addStockError }}</div>
-        <div v-if="addStockSuccess" class="modal-success">{{ addStockSuccess }}</div>
+        <h2>Nova Ordem de Produção</h2>
+        <p class="modal-subtitle">Isso iniciará o processo de fabricação.</p>
         
-        <form @submit.prevent="submitAddStock">
+        <div v-if="productionError" class="modal-error">{{ productionError }}</div>
+        <div v-if="productionSuccess" class="modal-success">{{ productionSuccess }}</div>
+        
+        <form @submit.prevent="submitOrdemProducao">
           <div class="form-group">
-            <label for="selectProduct">Produto:</label>
-            <select id="selectProduct" v-model="selectedProductId" required>
+            <label for="selectProduct">Produto a Fabricar:</label>
+            <select id="selectProduct" v-model="novaOrdem.produto_acabado" required>
               <option v-for="p in produtos" :key="p.id" :value="p.id">{{ p.nome }}</option>
             </select>
           </div>
-          <div class="form-group">
-            <label for="stockQuantity">Quantidade (Entrada):</label>
-            <input type="number" id="stockQuantity" v-model.number="stockQuantityToAdd" min="1" required>
+          
+          <div class="form-row">
+             <div class="form-group half">
+                <label for="qtdProduzir">Quantidade:</label>
+                <input type="number" id="qtdProduzir" v-model.number="novaOrdem.quantidade_produzir" min="1" required>
+             </div>
+             <div class="form-group half">
+                <label for="dataPrevista">Data Prevista:</label>
+                <input type="date" id="dataPrevista" v-model="novaOrdem.data_inicio_prevista" required>
+             </div>
           </div>
+
+          <div class="form-group">
+            <label for="selectMaquina">Máquina / Linha:</label>
+            <select id="selectMaquina" v-model="novaOrdem.maquina" required>
+              <option v-for="m in maquinas" :key="m.id" :value="m.id">{{ m.nome }} - {{ m.modelo }}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="obsOrdem">Observações:</label>
+            <input type="text" id="obsOrdem" v-model="novaOrdem.observacoes" placeholder="Ex: Lote prioritário...">
+          </div>
+
           <div class="modal-actions">
-            <button type="submit" class="btn-submit">Adicionar</button>
-            <button type="button" @click="closeAddStockModal" class="btn-cancel">Cancelar</button>
+            <button type="submit" class="btn-submit">Criar Ordem</button>
+            <button type="button" @click="closeProductionModal" class="btn-cancel">Fechar</button>
           </div>
         </form>
       </div>
@@ -323,7 +344,7 @@ onMounted(() => {
     
     <div v-if="showAddInsumoModal" class="modal-overlay" @click.self="closeAddInsumoModal">
       <div class="modal-content">
-        <h2 class="insumo-title">Adicionar Insumo (Compra Manual)</h2>
+        <h2 class="insumo-title">Registrar Compra de Insumo</h2>
         <div v-if="addInsumoError" class="modal-error">{{ addInsumoError }}</div>
         <div v-if="addInsumoSuccess" class="modal-success">{{ addInsumoSuccess }}</div>
         
@@ -350,46 +371,69 @@ onMounted(() => {
       </div>
     </div>
 
-  </div>
+  </AdminLayout>
 </template>
 
 <style scoped>
-.page-wrapper { display: flex; flex-direction: column; min-height: 100vh; background-color: #282a36; color: #f8f8f2; }
-.inventario-container { max-width: 1400px; margin: 0 auto; padding: 2rem; flex-grow: 1; width: 100%; }
-.header-inventario { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
-h1 { color: #bd93f9; text-align: left; margin: 0; font-size: 2.2rem; font-weight: 600; }
-.add-stock-button { background-color: #50fa7b; color: #282a36; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold; transition: background-color 0.3s ease; }
-.add-stock-button:hover { background-color: #69ff91; }
-.btn-insumo { background-color: #8be9fd; }
-.btn-insumo:hover { background-color: #a1effe; }
-.loading-message, .error-message, .no-data-message { text-align: center; padding: 1.5rem; border-radius: 8px; margin: 1rem 0; font-size: 1.1rem; background-color: #44475a; }
-.error-message { background-color: #ff5555; color: white; }
-.no-data-message { color: #f1fa8c; }
-.table-container { overflow-x: auto; background-color: #44475a; border: 1px solid #6272a4; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); }
-.inventario-table { width: 100%; border-collapse: collapse; }
-.inventario-table th, .inventario-table td { padding: 14px 18px; text-align: left; border-bottom: 1px solid #6272a4; vertical-align: middle; }
-.inventario-table th { background-color: #343746; font-weight: 600; color: #bd93f9; font-size: 0.9rem; text-transform: uppercase; white-space: nowrap; }
-.inventario-table tbody tr:hover { background-color: #4f5266; }
-.inventario-table td { white-space: nowrap; }
-.estoque-baixo { color: #f1fa8c; font-weight: bold; }
-.estoque-zero { color: #ff5555; font-weight: bold; }
-.divider { border: none; border-top: 2px solid #6272a4; margin: 3rem 0; }
-.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-.modal-content { background-color: #343746; padding: 30px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.6); width: 450px; max-width: 90%; color: #f8f8f2; }
-.modal-content h2 { color: #50fa7b; text-align: center; margin-bottom: 25px; font-size: 1.8em; }
-.modal-content h2.insumo-title { color: #8be9fd; }
-.form-group { margin-bottom: 20px; }
-.form-group label { display: block; margin-bottom: 8px; color: #bd93f9; font-weight: bold; }
-.form-group select, .form-group input[type="number"] { width: 100%; padding: 10px; border: 1px solid #6272a4; border-radius: 5px; background-color: #44475a; color: #f8f8f2; font-size: 1em; box-sizing: border-box; }
-.form-group select:focus, .form-group input[type="number"]:focus { border-color: #50fa7b; outline: none; }
-.modal-actions { display: flex; justify-content: flex-end; gap: 15px; margin-top: 30px; }
-.btn-submit, .btn-cancel { padding: 10px 25px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold; transition: background-color 0.3s ease; }
-.btn-submit { background-color: #50fa7b; color: #282a36; }
-.btn-submit:hover { background-color: #69ff91; }
-.btn-submit.btn-insumo { background-color: #8be9fd; color: #282a36; }
-.btn-submit.btn-insumo:hover { background-color: #a1effe; }
-.btn-cancel { background-color: #ff79c6; color: #282a36; }
-.btn-cancel:hover { background-color: #ff92d0; }
-.modal-error { background-color: #ff5555; color: white; padding: 10px; border-radius: 5px; margin-bottom: 15px; text-align: center; }
-.modal-success { background-color: #50fa7b; color: #282a36; padding: 10px; border-radius: 5px; margin-bottom: 15px; text-align: center; }
+.header-inventario { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+h2 { color: #334155; font-size: 1.3rem; font-weight: 600; margin: 0; }
+
+.card-container {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+}
+.mt-4 { margin-top: 2rem; }
+
+.btn-action { 
+  background-color: #3b82f6; color: white; padding: 10px 16px; 
+  border: none; border-radius: 6px; cursor: pointer; font-weight: 600; 
+  transition: background-color 0.2s; font-size: 0.9rem;
+}
+.btn-action:hover { background-color: #2563eb; }
+.btn-insumo { background-color: #10b981; }
+.btn-insumo:hover { background-color: #059669; }
+
+.clean-table { width: 100%; border-collapse: collapse; }
+.clean-table th {
+  text-align: left; color: #94a3b8; font-weight: 600; font-size: 0.85rem;
+  padding: 12px 15px; border-bottom: 1px solid #f1f5f9;
+}
+.clean-table td {
+  padding: 12px 15px; color: #475569; font-size: 0.9rem;
+  border-bottom: 1px solid #f1f5f9; white-space: nowrap;
+}
+
+.badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
+.badge-success { background-color: #d1fae5; color: #065f46; }
+.badge-warning { background-color: #fef3c7; color: #b45309; }
+.badge-danger { background-color: #fee2e2; color: #991b1b; }
+
+.modal-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background-color: rgba(15, 23, 42, 0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; 
+}
+.modal-content {
+  background-color: white; padding: 30px; border-radius: 12px; width: 500px; max-width: 90%;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+.modal-content h2 { margin-top: 0; margin-bottom: 5px; font-size: 1.4rem; color: #334155; text-align: left; }
+.modal-subtitle { color: #64748b; font-size: 0.9rem; margin-bottom: 20px; }
+
+.form-group { margin-bottom: 1rem; }
+.form-row { display: flex; gap: 15px; }
+.form-group.half { flex: 1; }
+
+.form-group label { display: block; margin-bottom: 5px; color: #64748b; font-size: 0.9rem; font-weight: 500; }
+.form-group select, .form-group input {
+  width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.95rem; color: #334155; outline: none;
+}
+.form-group select:focus, .form-group input:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.1); }
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; }
+.btn-submit { background-color: #3b82f6; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
+.btn-submit.btn-insumo { background-color: #10b981; }
+.btn-cancel { background-color: white; color: #64748b; border: 1px solid #cbd5e1; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+.modal-error { background-color: #fee2e2; color: #b91c1c; padding: 10px; border-radius: 6px; margin-bottom: 15px; font-size: 0.9rem; text-align: center; }
+.modal-success { background-color: #d1fae5; color: #065f46; padding: 10px; border-radius: 6px; margin-bottom: 15px; font-size: 0.9rem; text-align: center; }
 </style>

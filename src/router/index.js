@@ -81,7 +81,31 @@ const router = createRouter({
       name: 'AdminPedidos',
       component: () => import('../views/OrderManagementView.vue'),
       meta: { requiresAuth: true, requiresAdmin: true }
-    }
+    },
+    {
+      path: '/relatorios/produtos',
+      name: 'RelatoriosProdutos',
+      component: () => import('../views/RelatorioProdutosView.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true }
+    },
+    {
+      path: '/relatorios/insumos',
+      name: 'RelatoriosInsumos',
+      component: () => import('../views/RelatorioInsumosView.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true }
+    },
+    {
+      path: '/relatorios/custos-estoque',
+      name: 'CustosEstoque',
+      component: () => import('../views/CustosEstoqueView.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true }
+    },
+    {
+      path: '/controle-qualidade',
+      name: 'ControleQualidade',
+      component: () => import('../views/ControleQualidadeView.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true }
+    },
   ]
 })
 

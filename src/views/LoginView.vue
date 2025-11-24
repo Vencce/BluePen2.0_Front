@@ -2,174 +2,385 @@
 import { ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import roboCanetaImg from '../assets/imagens/robocaneta.png'; 
+import roboCanetaImg from '../assets/imagens/robocaneta.png'
 
 const username = ref('')
 const password = ref('')
 const errorMessage = ref('')
+const loading = ref(false)
 
 const authStore = useAuthStore()
 const router = useRouter()
 
 const fazerLogin = async () => {
   errorMessage.value = ''
+  loading.value = true
 
-  const loginResult = await authStore.login(username.value, password.value)
+  try {
+    const loginResult = await authStore.login(username.value, password.value)
 
-  if (loginResult.error) {
-    errorMessage.value = loginResult.error
-  } else if (loginResult === true) {
-    console.log('LoginView: Redirecionando para /admin-dashboard');
-    router.push('/admin-dashboard')
-  } else {
-    console.log('LoginView: Redirecionando para /loja');
-    router.push('/loja')
+    if (loginResult.error) {
+      errorMessage.value = loginResult.error
+    } else if (loginResult === true) {
+      router.push('/admin-dashboard')
+    } else {
+      router.push('/loja')
+    }
+  } catch (error) {
+    errorMessage.value = 'Ocorreu um erro inesperado. Tente novamente.'
+  } finally {
+    loading.value = false
   }
 }
 </script>
 
 <template>
-  <div class="container">
-    <div class="container__imagem">
-      <img :src="roboCanetaImg" alt="Robô assistente" />
-    </div>
-    <div class="container__login">
-      <h1>Login</h1>
-      <form @submit.prevent="fazerLogin">
-        <input v-model="username" type="text" placeholder="Usuário" required />
-        <input v-model="password" type="password" placeholder="Senha" required />
-
-        <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
-
-        <div class="container__login__botoes">
-          <button type="submit" class="btn btn-primary">Entrar</button>
-          <router-link to="/cadastro" class="btn btn-secondary">
-            Cadastrar
-          </router-link>
+  <div class="login-wrapper">
+    <div class="banner-side">
+      <div class="banner-content">
+        <img :src="roboCanetaImg" alt="BluePen Bot" class="banner-img" />
+        <div class="banner-text">
+          <h2>Gerencie com Eficiência</h2>
+          <p>A solução completa para o controle da sua fábrica de canetas.</p>
         </div>
-        
-        <router-link to="/recuperar-senha" class="forgot-password">
-          Esqueceu a senha?
-        </router-link>
-      </form>
+      </div>
+      <div class="circle-bg"></div>
+    </div>
+
+    <div class="form-side">
+      <div class="form-container">
+        <div class="header-text">
+          <h1>Bem-vindo de volta!</h1>
+          <p class="subtitle">Por favor, insira seus dados para entrar.</p>
+        </div>
+
+        <form @submit.prevent="fazerLogin">
+          <div class="input-group">
+            <label for="username">Usuário</label>
+            <div class="input-wrapper">
+              <span class="icon">👤</span>
+              <input 
+                id="username" 
+                v-model="username" 
+                type="text" 
+                placeholder="Seu nome de usuário" 
+                required 
+              />
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="password">Senha</label>
+            <div class="input-wrapper">
+              <span class="icon">🔒</span>
+              <input 
+                id="password" 
+                v-model="password" 
+                type="password" 
+                placeholder="••••••••" 
+                required 
+              />
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <router-link to="/recuperar-senha" class="forgot-link">
+              Esqueceu a senha?
+            </router-link>
+          </div>
+
+          <div v-if="errorMessage" class="alert-error">
+            {{ errorMessage }}
+          </div>
+
+          <button type="submit" class="btn-login" :disabled="loading">
+            <span v-if="!loading">Entrar</span>
+            <span v-else class="loader"></span>
+          </button>
+
+          <p class="register-text">
+            Não tem uma conta? 
+            <RouterLink to="/cadastro" class="register-link">Cadastre-se</RouterLink>
+          </p>
+        </form>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.forgot-password {
-  text-align: center;
-  margin-top: 1.5rem;
-  color: #007bff;
-  text-decoration: none;
-  font-size: 0.9rem;
-}
-
-.forgot-password:hover {
-  text-decoration: underline;
-}
-
-.container {
+.login-wrapper {
   display: flex;
-  flex-direction: row; 
-  height: 100vh;
-  width: 100vw;
-  background-color: white;
+  min-height: 100vh;
+  width: 100%;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: #fff;
   overflow: hidden;
 }
-.container__imagem {
-  flex: 1; 
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 2rem;
-  background-color: #e6ecea; 
-  border-radius: 0 5vh 5vh 0;
-}
-.container__imagem img {
-  max-width: 100%;
-  height: auto;
-  object-fit: contain;
-}
-.container__login {
-  flex: 1; 
+
+.banner-side {
+  flex: 1.2;
+  background: linear-gradient(135deg, #eef2f3 0%, #dbeafe 100%);
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+  position: relative;
   padding: 2rem;
 }
-h1 {
-  font-size: 4.5rem;
-  font-weight: bold;
-  font-family: Arial, sans-serif;
-  color: #333;
+
+.banner-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  max-width: 600px;
+}
+
+.banner-img {
+  width: auto;
+  max-width: 90%;
+  max-height: 55vh; 
+  object-fit: contain;
+  filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.1));
+  animation: float 6s ease-in-out infinite;
   margin-bottom: 2rem;
 }
-form {
+
+.banner-text {
+  color: #1e293b;
+}
+
+.banner-text h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.banner-text p {
+  font-size: 1.1rem;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.circle-bg {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  background: rgba(59, 130, 246, 0.05);
+  border-radius: 50%;
+  bottom: -100px;
+  right: -100px;
+  z-index: 1;
+}
+
+.form-side {
+  flex: 1;
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background-color: white;
+  position: relative;
+  z-index: 10;
+}
+
+.form-container {
   width: 100%;
   max-width: 400px;
 }
-input {
-  font-size: 1rem;
-  padding: 12px 15px;
-  margin-bottom: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font-family: Arial, sans-serif;
+
+.header-text {
+  margin-bottom: 2rem;
+  text-align: left;
 }
-.error-message {
-  color: #dc3545;
-  text-align: center;
-  margin-bottom: 1rem;
+
+.header-text h1 {
+  font-size: 2rem;
+  color: #1e293b;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
 }
-.container__login__botoes {
+
+.subtitle {
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+.input-group {
+  margin-bottom: 1.25rem;
+}
+
+.input-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #334155;
+}
+
+.input-wrapper {
+  position: relative;
   display: flex;
-  gap: 1rem; 
-  margin-top: 1rem;
+  align-items: center;
 }
-.btn {
+
+.input-wrapper .icon {
+  position: absolute;
+  left: 12px;
+  font-size: 1.1rem;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.input-wrapper input {
+  width: 100%;
+  padding: 12px 12px 12px 40px;
   font-size: 1rem;
-  font-weight: bold;
-  padding: 12px 15px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background-color: #fff;
+  color: #334155;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.input-wrapper input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.input-wrapper input::placeholder {
+  color: #94a3b8;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1.5rem;
+}
+
+.forgot-link {
+  font-size: 0.9rem;
+  color: #3b82f6;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.forgot-link:hover {
+  text-decoration: underline;
+}
+
+.alert-error {
+  background-color: #fee2e2;
+  color: #991b1b;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  border: 1px solid #fecaca;
+}
+
+.btn-login {
+  width: 100%;
+  padding: 12px;
+  background-color: #2563eb;
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
-  text-decoration: none;
-  text-align: center;
-  flex: 1; 
-}
-.btn-primary {
-  background-color: #007bff;
-  color: white;
-}
-.btn-primary:hover {
-  background-color: #0056b3;
-}
-.btn-secondary {
-  background-color: #6c757d;
-  color: white;
-}
-.btn-secondary:hover {
-  background-color: #5a6268;
+  transition: background-color 0.2s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 48px;
 }
 
-@media (max-width: 768px) {
-  .container {
-    flex-direction: column; 
+.btn-login:hover {
+  background-color: #1d4ed8;
+}
+
+.btn-login:disabled {
+  background-color: #93c5fd;
+  cursor: not-allowed;
+}
+
+.register-text {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.95rem;
+  color: #64748b;
+}
+
+.register-link {
+  color: #2563eb;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.register-link:hover {
+  text-decoration: underline;
+}
+
+.loader {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #fff;
+  border-bottom-color: transparent;
+  border-radius: 50%;
+  display: inline-block;
+  box-sizing: border-box;
+  animation: rotation 1s linear infinite;
+}
+
+@keyframes rotation {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+@media (max-width: 960px) {
+  .banner-side {
+    display: none;
   }
-  .container__imagem {
-    display: none; 
-  }
-  .container__login {
+  
+  .form-side {
+    padding: 1.5rem;
     width: 100%;
-    min-height: 100vh; 
   }
-  .container__login__botoes {
-    flex-direction: column; 
+  
+  .form-container {
+    max-width: 100%;
+    padding: 0 1rem;
+  }
+
+  .header-text h1 {
+    font-size: 1.8rem;
+  }
+}
+
+@media (max-height: 700px) {
+  .banner-img {
+    max-height: 65vh;
+    margin-bottom: 1rem;
+  }
+  
+  .banner-text h2 {
+    font-size: 1.5rem;
   }
 }
 </style>

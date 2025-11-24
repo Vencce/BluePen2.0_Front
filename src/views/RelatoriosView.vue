@@ -2,8 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import axios from 'axios'
-import HeaderComponent from '@/components/HeaderComponent.vue'
-import FooterComponent from '@/components/FooterComponent.vue'
+import AdminLayout from '@/components/AdminLayout.vue' 
 
 const authStore = useAuthStore()
 
@@ -111,6 +110,8 @@ const formatCurrency = (value) => {
   const numericValue = parseFloat(value) || 0;
   return numericValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
+
+// CORREÇÃO AQUI TAMBÉM
 const formatDate = (dateString) => {
   if (!dateString) return '-';
   const [year, month, day] = dateString.split('-');
@@ -121,15 +122,12 @@ onMounted(carregarFluxoCaixa)
 </script>
 
 <template>
-  <div class="page-wrapper">
-    <HeaderComponent />
-    
-    <main class="relatorios-container">
+  <AdminLayout>
       
-      <div class="header-inventario">
+      <div class="page-header-flex">
         <h1>Relatório Financeiro (Fluxo de Caixa)</h1>
-        <button @click="openAddModal" class="add-stock-button">
-          Adicionar Lançamento
+        <button @click="openAddModal" class="btn-action">
+          + Adicionar Lançamento
         </button>
       </div>
 
@@ -152,15 +150,13 @@ onMounted(carregarFluxoCaixa)
           </div>
         </section>
 
-        <hr class="divider" />
-
-        <section class="lancamentos-section">
+        <section class="card-container">
           <h2>Últimos Lançamentos</h2>
           <div v-if="lancamentos.length === 0" class="no-data-message">
             Nenhum lançamento encontrado.
           </div>
-          <div v-else class="table-container">
-            <table class="lancamentos-table">
+          <div v-else class="table-responsive">
+            <table class="clean-table">
               <thead>
                 <tr>
                   <th>Data</th>
@@ -174,13 +170,13 @@ onMounted(carregarFluxoCaixa)
                 <tr v-for="l in lancamentos" :key="l.id">
                   <td>{{ formatDate(l.data_lancamento) }}</td>
                   <td>
-                    <span :class="['tipo-badge', l.tipo === 'ENTRADA' ? 'tipo-receita' : 'tipo-despesa']">
+                    <span :class="['badge', l.tipo === 'ENTRADA' ? 'badge-success' : 'badge-danger']">
                       {{ l.tipo }}
                     </span>
                   </td>
                   <td>{{ l.categoria }}</td>
                   <td>{{ l.descricao || '-' }}</td>
-                  <td :class="[l.tipo === 'ENTRADA' ? 'valor-receita' : 'valor-despesa']">
+                  <td :class="[l.tipo === 'ENTRADA' ? 'text-success' : 'text-danger']">
                     {{ formatCurrency(l.valor) }}
                   </td>
                 </tr>
@@ -189,29 +185,26 @@ onMounted(carregarFluxoCaixa)
           </div>
         </section>
       </div>
-    </main>
-
-    <FooterComponent />
 
     <div v-if="showAddModal" class="modal-overlay">
       <div class="modal-content">
-        <h2>Adicionar Lançamento no Caixa</h2>
+        <h2>Adicionar Lançamento</h2>
         <div v-if="modalError" class="modal-error">{{ modalError }}</div>
         <div v-if="modalSuccess" class="modal-success">{{ modalSuccess }}</div>
         
         <form @submit.prevent="submitLancamento">
           
           <div class="form-group">
-            <label for="tipo">Tipo:</label>
-            <select id="tipo" v-model="novoLancamento.tipo" required>
+            <label>Tipo:</label>
+            <select v-model="novoLancamento.tipo" required>
               <option value="ENTRADA">Entrada (Receita)</option>
               <option value="SAIDA">Saída (Despesa)</option>
             </select>
           </div>
           
           <div class="form-group">
-            <label for="categoria">Categoria:</label>
-            <select id="categoria" v-model="novoLancamento.categoria" required>
+            <label>Categoria:</label>
+            <select v-model="novoLancamento.categoria" required>
               <option value="CAPITAL_INICIAL">Capital Inicial</option>
               <option value="VENDA">Venda</option>
               <option value="INSUMO">Insumo (Compra)</option>
@@ -221,262 +214,224 @@ onMounted(carregarFluxoCaixa)
           </div>
 
           <div class="form-group">
-            <label for="descricao">Descrição:</label>
-            <input type="text" id="descricao" v-model="novoLancamento.descricao" required>
+            <label>Descrição:</label>
+            <input type="text" v-model="novoLancamento.descricao" required>
           </div>
 
           <div class="form-group">
-            <label for="valor">Valor (R$):</label>
-            <input type="number" id="valor" v-model.number="novoLancamento.valor" min="0.01" step="0.01" required>
+            <label>Valor (R$):</label>
+            <input type="number" v-model.number="novoLancamento.valor" min="0.01" step="0.01" required>
           </div>
 
           <div class="form-group">
-            <label for="data">Data do Lançamento:</label>
-            <input type="date" id="data" v-model="novoLancamento.data_lancamento" required>
+            <label>Data:</label>
+            <input type="date" v-model="novoLancamento.data_lancamento" required>
           </div>
           
           <div class="modal-actions">
-            <button type="submit" class="btn-submit">Adicionar</button>
+            <button type="submit" class="btn-submit">Salvar</button>
             <button type="button" @click="closeAddModal" class="btn-cancel">Cancelar</button>
           </div>
         </form>
       </div>
     </div>
-    </div>
+  </AdminLayout>
 </template>
 
 <style scoped>
-.page-wrapper {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  background-color: #f4f7f6;
-}
-.relatorios-container {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 2rem;
-  flex-grow: 1;
-  width: 100%;
-}
-.divider { 
-  border: none; 
-  border-top: 1px solid #ddd; 
-  margin: 2.5rem 0; 
-}
-.metrics-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2.5rem;
-}
-.metric-card {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  border-left: 5px solid #007bff; 
-}
-.metric-card h3 {
-  font-size: 1.1rem;
-  color: #6c757d;
-  margin-top: 0;
-  margin-bottom: 0.5rem;
-  text-transform: uppercase;
-}
-.metric-card p {
-  font-size: 2.2rem;
-  font-weight: 600;
-  color: #333;
-  margin: 0;
-}
-.card-receita { border-left-color: #28a745; }
-.card-receita p { color: #28a745; }
-.card-despesa { border-left-color: #dc3545; }
-.card-despesa p { color: #dc3545; }
-.card-saldo { border-left-color: #007bff; }
-.card-saldo p { color: #007bff; }
-
-.lancamentos-section {
-  background-color: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-}
-
-.lancamentos-section h2 {
-  font-size: 1.5rem;
-  margin-bottom: 1.5rem;
-  color: #333;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid #ddd;
-}
-.table-container { overflow-x: auto; }
-.lancamentos-table {
-  width: 100%;
-  border-collapse: collapse; 
-  margin-top: 1rem;
-}
-.lancamentos-table th,
-.lancamentos-table td {
-  padding: 12px 15px;
-  text-align: left;
-  border-bottom: 1px solid #eee;
-  vertical-align: middle; 
-  color: #333;
-}
-.lancamentos-table th {
-  background-color: #f8f9fa; 
-  font-weight: 600;
-  color: #495057;
-  white-space: nowrap; 
-}
-.lancamentos-table tbody tr:hover { background-color: #f1f1f1; }
-.tipo-badge {
-  padding: 4px 10px; 
-  border-radius: 12px;
-  font-size: 0.8rem;
-  font-weight: bold;
-  text-transform: capitalize;
-  color: white;
-}
-.tipo-receita { background-color: #28a745; }
-.tipo-despesa { background-color: #dc3545; }
-.valor-receita { color: #28a745; font-weight: bold; }
-.valor-despesa { color: #dc3545; font-weight: bold; }
-.error-message, .loading-message, .no-data-message { 
-  text-align: center; padding: 1rem; margin-bottom: 1rem; border-radius: 8px; 
-}
-.error-message { color: #dc3545; background-color: #f8d7da; border: 1px solid #f5c6cb; font-weight: 600; }
-.loading-message, .no-data-message { background-color: #eee; color: #555; }
-
-.header-inventario {
+.page-header-flex {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
 }
 h1 {
-  color: #333; 
-  text-align: left;
-  margin: 0;
-  font-size: 2.5rem;
+  color: #334155; 
+  font-size: 1.8rem;
   font-weight: 600;
-}
-.add-stock-button { 
-  background-color: #50fa7b;
-  color: #282a36;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 1em;
-  font-weight: bold;
-  transition: background-color 0.3s ease;
-}
-.add-stock-button:hover {
-  background-color: #69ff91;
+  margin: 0;
 }
 
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+.metric-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  border-left: 4px solid #3b82f6; 
+}
+.metric-card h3 {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.metric-card p {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+.card-receita { border-left-color: #10b981; }
+.card-despesa { border-left-color: #ef4444; }
+.card-saldo { border-left-color: #3b82f6; }
+
+.card-container {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+}
+.card-container h2 {
+    font-size: 1.2rem;
+    color: #334155;
+    margin-bottom: 1.5rem;
+    margin-top: 0;
+}
+
+.clean-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.clean-table th {
+  text-align: left;
+  color: #94a3b8;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 12px 15px;
+  border-bottom: 1px solid #f1f5f9;
+}
+.clean-table td {
+  padding: 12px 15px;
+  color: #475569;
+  font-size: 0.9rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+.badge-success { background-color: #d1fae5; color: #065f46; }
+.badge-danger { background-color: #fee2e2; color: #991b1b; }
+
+.text-success { color: #10b981; font-weight: 600; }
+.text-danger { color: #ef4444; font-weight: 600; }
+
+.btn-action { 
+  background-color: #3b82f6;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+.btn-action:hover {
+  background-color: #2563eb;
+}
+
+/* Modal Styles - Simplified for Admin Look */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: rgba(15, 23, 42, 0.6);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000; 
 }
 .modal-content {
-  background-color: #ffffff;
+  background-color: white;
   padding: 30px;
-  border-radius: 10px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-  width: 500px;
+  border-radius: 12px;
+  width: 450px;
   max-width: 90%;
-  color: #333; 
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
 }
 .modal-content h2 {
-  color: #007bff;
-  text-align: center;
-  margin-bottom: 25px;
-  font-size: 1.8em;
-  border-bottom: none;
-  padding-bottom: 0;
+    color: #334155;
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 1.4rem;
 }
 .form-group {
-  margin-bottom: 1.25rem;
+  margin-bottom: 1rem;
 }
 .form-group label {
   display: block;
-  margin-bottom: 8px;
-  color: #333;
-  font-weight: bold;
+  margin-bottom: 5px;
+  color: #64748b;
+  font-size: 0.9rem;
+  font-weight: 500;
 }
 .form-group select,
 .form-group input {
   width: 100%;
   padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  background-color: #fefefe;
-  color: #333;
-  font-size: 1em;
-  box-sizing: border-box;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  color: #334155;
+  outline: none;
 }
 .form-group select:focus,
 .form-group input:focus {
-  border-color: #007bff; 
-  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59,130,246,0.1);
 }
+
 .modal-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 15px;
-  margin-top: 30px;
-}
-.btn-submit, .btn-cancel {
-  padding: 10px 25px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 1em;
-  font-weight: bold;
-  transition: background-color 0.3s ease;
+  gap: 10px;
+  margin-top: 25px;
 }
 .btn-submit {
-  background-color: #28a745;
+  background-color: #10b981;
   color: white;
-}
-.btn-submit:hover {
-  background-color: #218838;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
 }
 .btn-cancel {
-  background-color: #6c757d;
-  color: white;
-}
-.btn-cancel:hover {
-  background-color: #5a6268;
+  background-color: white;
+  color: #64748b;
+  border: 1px solid #cbd5e1;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
 }
 .modal-error {
-  background-color: #f8d7da;
-  color: #dc3545;
-  border: 1px solid #f5c6cb;
+  background-color: #fee2e2;
+  color: #b91c1c;
   padding: 10px;
-  border-radius: 5px;
+  border-radius: 6px;
   margin-bottom: 15px;
-  text-align: center;
+  font-size: 0.9rem;
 }
 .modal-success {
-  background-color: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
+  background-color: #d1fae5;
+  color: #065f46;
   padding: 10px;
-  border-radius: 5px;
+  border-radius: 6px;
   margin-bottom: 15px;
-  text-align: center;
+  font-size: 0.9rem;
 }
 </style>
