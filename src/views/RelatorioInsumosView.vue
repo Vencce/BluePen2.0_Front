@@ -29,7 +29,7 @@ const carregarMovimentos = async () => {
   errorMessage.value = null
   try {
     const response = await axios.get(
-      'http://127.0.0.1:8000/api/fabrica/movimentos-insumo/',
+      'https://bluepen-back.onrender.com/api/fabrica/movimentos-insumo/',
       { headers: { Authorization: `Token ${authStore.token}` } }
     )
     movimentos.value = response.data.sort((a, b) => 

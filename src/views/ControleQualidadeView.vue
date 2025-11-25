@@ -11,7 +11,6 @@ const inspecoes = ref([])
 const loading = ref(true)
 const errorMessage = ref(null)
 
-// Modal
 const showModal = ref(false)
 const modalError = ref(null)
 const modalSuccess = ref(null)
@@ -27,7 +26,6 @@ const form = ref({
   inspetor: null
 })
 
-// Combina Ordens com suas Inspeções (se houver)
 const ordensComStatus = computed(() => {
   return ordens.value.map(ordem => {
     const inspecao = inspecoes.value.find(i => i.ordem_producao === ordem.id)
@@ -43,8 +41,8 @@ const carregarDados = async () => {
   errorMessage.value = null
   try {
     const [resOrdens, resInspecoes] = await Promise.all([
-      axios.get('http://127.0.0.1:8000/api/fabrica/ordens-producao/', { headers: { Authorization: `Token ${authStore.token}` } }),
-      axios.get('http://127.0.0.1:8000/api/fabrica/controle-qualidade/', { headers: { Authorization: `Token ${authStore.token}` } })
+      axios.get('https://bluepen-back.onrender.com/api/fabrica/ordens-producao/', { headers: { Authorization: `Token ${authStore.token}` } }),
+      axios.get('https://bluepen-back.onrender.com/api/fabrica/controle-qualidade/', { headers: { Authorization: `Token ${authStore.token}` } })
     ])
     ordens.value = resOrdens.data.sort((a, b) => b.id - a.id)
     inspecoes.value = resInspecoes.data
@@ -63,15 +61,9 @@ const openModal = (ordem, inspecaoExistente) => {
   if (inspecaoExistente) {
     isEditing.value = true
     editingId.value = inspecaoExistente.id
-    // Copia os dados existentes
     form.value = { ...inspecaoExistente }
-    
-    // Garante que os campos numéricos sejam números
     form.value.quantidade_aprovada = parseInt(form.value.quantidade_aprovada)
     form.value.quantidade_rejeitada = parseInt(form.value.quantidade_rejeitada)
-    
-    // Importante: O backend retorna objetos aninhados (ordem_producao: {id: 1...}), 
-    // mas para salvar precisamos apenas do ID.
     if (typeof form.value.ordem_producao === 'object') {
         form.value.ordem_producao = form.value.ordem_producao.id;
     }
@@ -99,23 +91,22 @@ const submitForm = async () => {
   modalSuccess.value = null
   
   try {
-    // Prepara o payload com os nomes de campo que o Serializer espera (_id)
     const payload = {
-        ordem_producao_id: form.value.ordem_producao, // Mudou de ordem_producao para ordem_producao_id
+        ordem_producao_id: form.value.ordem_producao, 
         quantidade_aprovada: form.value.quantidade_aprovada,
         quantidade_rejeitada: form.value.quantidade_rejeitada,
         observacoes: form.value.observacoes,
         status: form.value.status,
-        inspetor_id: authStore.user.id // Garante que envia inspetor_id
+        inspetor_id: authStore.user.id 
     }
 
     if (isEditing.value) {
-      await axios.put(`http://127.0.0.1:8000/api/fabrica/controle-qualidade/${editingId.value}/`, payload, {
+      await axios.put(`https://bluepen-back.onrender.com/api/fabrica/controle-qualidade/${editingId.value}/`, payload, {
         headers: { Authorization: `Token ${authStore.token}` }
       })
       modalSuccess.value = "Inspeção atualizada com sucesso!"
     } else {
-      await axios.post('http://127.0.0.1:8000/api/fabrica/controle-qualidade/', payload, {
+      await axios.post('https://bluepen-back.onrender.com/api/fabrica/controle-qualidade/', payload, {
         headers: { Authorization: `Token ${authStore.token}` }
       })
       modalSuccess.value = "Inspeção registrada e estoque atualizado!"
@@ -126,7 +117,6 @@ const submitForm = async () => {
 
   } catch (error) {
     console.error("Erro no envio:", error.response?.data || error)
-    // Mostra detalhes do erro se disponíveis
     if (error.response?.data) {
         modalError.value = "Erro: " + JSON.stringify(error.response.data)
     } else {

@@ -22,7 +22,7 @@ const carregarPedidos = async () => {
   loading.value = true
   errorMessage.value = null
   try {
-    const response = await axios.get('http://127.0.0.1:8000/api/pedidos/', {
+    const response = await axios.get('https://bluepen-back.onrender.com/api/pedidos/', {
       headers: { Authorization: `Token ${authStore.token}` },
     })
     pedidos.value = response.data
@@ -41,7 +41,7 @@ const handleStatusChange = async (pedido, event) => {
 
   try {
     await axios.patch(
-      `http://127.0.0.1:8000/api/pedidos/${pedido.id}/`,
+      `https://bluepen-back.onrender.com/api/pedidos/${pedido.id}/`,
       { status: newStatus },
       { headers: { Authorization: `Token ${authStore.token}` } },
     )

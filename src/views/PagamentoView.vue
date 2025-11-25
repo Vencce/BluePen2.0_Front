@@ -79,7 +79,7 @@ const fetchEnderecosDoUsuario = async () => {
   }
   loading.value = true
   try {
-    const response = await axios.get('http://127.0.0.1:8000/api/enderecos/', {
+    const response = await axios.get('https://bluepen-back.onrender.com/api/enderecos/', {
       headers: { Authorization: `Token ${authStore.token}` },
     })
     enderecosDisponiveis.value = response.data
@@ -166,7 +166,7 @@ const handleConfirmarPedido = async () => {
   }
 
   try {
-    await axios.post('http://127.0.0.1:8000/api/pedidos/', orderData, {
+    await axios.post('https://bluepen-back.onrender.com/api/pedidos/', orderData, {
       headers: {
         Authorization: `Token ${authStore.token}`,
         'Content-Type': 'application/json',

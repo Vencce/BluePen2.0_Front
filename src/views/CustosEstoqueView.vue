@@ -11,10 +11,9 @@ const message = ref(null)
 
 const carregarCustos = async () => {
   try {
-    const response = await axios.get('http://127.0.0.1:8000/api/fabrica/fluxo-caixa/', {
+    const response = await axios.get('https://bluepen-back.onrender.com/api/fabrica/fluxo-caixa/', {
       headers: { Authorization: `Token ${authStore.token}` }
     })
-    // Filtra apenas os custos de estocagem/depreciação
     custos.value = response.data.filter(c => c.categoria === 'DEPRECIACAO' || c.descricao.includes('Custo Diário')).sort((a,b) => new Date(b.data_lancamento) - new Date(a.data_lancamento))
   } catch (error) {
     console.error(error)
@@ -25,7 +24,7 @@ const processarCustosHoje = async () => {
   loading.value = true
   message.value = null
   try {
-    const response = await axios.post('http://127.0.0.1:8000/api/fabrica/custos-diarios/processar/', {}, {
+    const response = await axios.post('https://bluepen-back.onrender.com/api/fabrica/custos-diarios/processar/', {}, {
       headers: { Authorization: `Token ${authStore.token}` }
     })
     message.value = { type: 'success', text: `Sucesso! Total gerado: R$ ${response.data.total}` }
@@ -43,9 +42,6 @@ const processarCustosHoje = async () => {
 
 const formatCurrency = (val) => parseFloat(val).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 
-// CORREÇÃO AQUI:
-// Divide a string "YYYY-MM-DD" e monta a data manualmente para evitar que o
-// navegador subtraia horas do fuso horário e mude o dia.
 const formatDate = (dateString) => {
   if (!dateString) return '-';
   const [year, month, day] = dateString.split('-');

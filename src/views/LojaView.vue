@@ -13,7 +13,7 @@ const erroCarregamento = ref(null)
 const carregarProdutos = async () => {
   erroCarregamento.value = null
   try {
-    const response = await axios.get('http://127.0.0.1:8000/api/produtos/')
+    const response = await axios.get('https://bluepen-back.onrender.com/api/produtos/')
     produtos.value = response.data
   } catch (error) {
     console.error('Erro ao carregar produtos:', error)
@@ -176,7 +176,6 @@ onMounted(() => {
     border-radius: 2px;
 }
 
-/* Grid Flex para centralizar itens únicos */
 .produto-grid {
   display: flex;
   flex-wrap: wrap;
@@ -193,7 +192,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   border: 1px solid #e2e8f0;
-  width: 280px; /* Largura fixa para o card ficar consistente */
+  width: 280px;
   flex-grow: 0;
 }
 

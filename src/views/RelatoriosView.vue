@@ -43,7 +43,7 @@ const carregarFluxoCaixa = async () => {
   errorMessage.value = null
   try {
     const response = await axios.get(
-      'http://127.0.0.1:8000/api/fabrica/fluxo-caixa/',
+      'https://bluepen-back.onrender.com/api/fabrica/fluxo-caixa/',
       { headers: { Authorization: `Token ${authStore.token}` } }
     )
     lancamentos.value = response.data.sort((a, b) => 
@@ -89,7 +89,7 @@ const submitLancamento = async () => {
 
   try {
     await axios.post(
-      'http://127.0.0.1:8000/api/fabrica/fluxo-caixa/',
+      'https://bluepen-back.onrender.com/api/fabrica/fluxo-caixa/',
       novoLancamento.value,
       { headers: { 'Authorization': `Token ${authStore.token}` } }
     )
@@ -111,7 +111,6 @@ const formatCurrency = (value) => {
   return numericValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
-// CORREÇÃO AQUI TAMBÉM
 const formatDate = (dateString) => {
   if (!dateString) return '-';
   const [year, month, day] = dateString.split('-');

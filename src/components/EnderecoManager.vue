@@ -65,7 +65,7 @@ const fetchEnderecos = async () => {
   loading.value = true;
   errorMessage.value = null;
   try {
-    const response = await axios.get('http://127.0.0.1:8000/api/enderecos/', {
+    const response = await axios.get('https://bluepen-back.onrender.com/api/enderecos/', {
       headers: {
         'Authorization': `Token ${authStore.token}`
       }
@@ -96,7 +96,7 @@ const handleAddOrUpdateEndereco = async () => {
   try {
     let response;
     if (isEditing.value) {
-      response = await axios.put(`http://127.0.0.1:8000/api/enderecos/${editingEnderecoId.value}/`, novoEndereco.value, {
+      response = await axios.put(`https://bluepen-back.onrender.com/api/enderecos/${editingEnderecoId.value}/`, novoEndereco.value, {
         headers: {
           'Authorization': `Token ${authStore.token}`,
           'Content-Type': 'application/json'
@@ -104,7 +104,7 @@ const handleAddOrUpdateEndereco = async () => {
       });
       console.log('Endereço atualizado:', response.data);
     } else {
-      response = await axios.post('http://127.0.0.1:8000/api/enderecos/', novoEndereco.value, {
+      response = await axios.post('https://bluepen-back.onrender.com/api/enderecos/', novoEndereco.value, {
         headers: {
           'Authorization': `Token ${authStore.token}`,
           'Content-Type': 'application/json'
@@ -138,7 +138,7 @@ const deleteEndereco = async (id) => {
   if (!confirm('Tem certeza que deseja excluir este endereço?')) return;
   errorMessage.value = null;
   try {
-    await axios.delete(`http://127.0.0.1:8000/api/enderecos/${id}/`, {
+    await axios.delete(`https://bluepen-back.onrender.com/api/enderecos/${id}/`, {
       headers: {
         'Authorization': `Token ${authStore.token}`
       }

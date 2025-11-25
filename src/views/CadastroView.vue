@@ -33,7 +33,7 @@ const fazerCadastro = async () => {
       password_confirm: password_confirm.value,
     }
 
-    await axios.post('http://127.0.0.1:8000/api/cadastro/', payload)
+    await axios.post('https://bluepen-back.onrender.com/api/cadastro/', payload)
 
     successMessage.value = 'Cadastro realizado com sucesso! Redirecionando...'
 

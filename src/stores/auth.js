@@ -5,7 +5,7 @@ import router from '@/router'
 
 const fetchProfile = async (token) => {
   try {
-    const response = await axios.get('http://127.0.0.1:8000/api/profile/', {
+    const response = await axios.get('https://bluepen-back.onrender.com/api/profile/', {
       headers: { 'Authorization': `Token ${token}` }
     });
     return response.data.length > 0 ? response.data[0] : null;
@@ -35,7 +35,7 @@ export const useAuthStore = defineStore('auth', {
   actions: {
     async login(username, password) {
       try {
-        const response = await axios.post('http://127.0.0.1:8000/api/login/', {
+        const response = await axios.post('https://bluepen-back.onrender.com/api/login/', {
           username: username,
           password: password,
         })

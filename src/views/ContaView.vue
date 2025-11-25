@@ -29,10 +29,10 @@ const carregarDadosDaConta = async () => {
 
   try {
     const [pedidosResponse, profileResponse] = await Promise.all([
-      axios.get('http://127.0.0.1:8000/api/pedidos/', {
+      axios.get('https://bluepen-back.onrender.com/api/pedidos/', {
         headers: { Authorization: `Token ${authStore.token}` },
       }),
-      axios.get('http://127.0.0.1:8000/api/profile/', {
+      axios.get('https://bluepen-back.onrender.com/api/profile/', {
         headers: { Authorization: `Token ${authStore.token}` },
       }),
     ])
@@ -74,7 +74,7 @@ const handleAvatarUpload = async () => {
 
   try {
     const response = await axios.patch(
-      `http://127.0.0.1:8000/api/profile/${profile.value.id}/`,
+      `https://bluepen-back.onrender.com/api/profile/${profile.value.id}/`,
       formData,
       {
         headers: {

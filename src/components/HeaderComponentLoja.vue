@@ -11,7 +11,7 @@ const fazerLogout = () => {
 }
 
 const setDefaultAvatar = (event) => {
-  event.target.src = 'http://127.0.0.1:8000/media/avatars/default.png'
+  event.target.src = 'https://bluepen-back.onrender.com/media/avatars/default.png'
 }
 </script>
 

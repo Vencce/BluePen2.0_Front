@@ -13,7 +13,6 @@ const maquinas = ref([])
 const loading = ref(true)
 const errorMessage = ref(null)
 
-// --- Modal de Ordem de Produção ---
 const showProductionModal = ref(false)
 const productionError = ref(null)
 const productionSuccess = ref(null)
@@ -25,7 +24,6 @@ const novaOrdem = ref({
   observacoes: ''
 })
 
-// --- Modal de Compra de Insumo ---
 const showAddInsumoModal = ref(false)
 const selectedInsumoId = ref(null)
 const insumoQuantityToAdd = ref(1)
@@ -42,9 +40,9 @@ const carregarInventario = async () => {
   errorMessage.value = null
   try {
     const [resProdutos, resInsumos, resMaquinas] = await Promise.all([
-      axios.get('http://127.0.0.1:8000/api/produtos/', { headers: { 'Authorization': `Token ${authStore.token}` } }),
-      axios.get('http://127.0.0.1:8000/api/fabrica/insumos/', { headers: { 'Authorization': `Token ${authStore.token}` } }),
-      axios.get('http://127.0.0.1:8000/api/fabrica/maquinas/', { headers: { 'Authorization': `Token ${authStore.token}` } })
+      axios.get('https://bluepen-back.onrender.com/api/produtos/', { headers: { 'Authorization': `Token ${authStore.token}` } }),
+      axios.get('https://bluepen-back.onrender.com/api/fabrica/insumos/', { headers: { 'Authorization': `Token ${authStore.token}` } }),
+      axios.get('https://bluepen-back.onrender.com/api/fabrica/maquinas/', { headers: { 'Authorization': `Token ${authStore.token}` } })
     ])
     
     produtos.value = resProdutos.data
@@ -72,7 +70,6 @@ const formatNumber = (value) => {
     return numericValue; 
 }
 
-// --- Lógica da Ordem de Produção ---
 const openProductionModal = () => {
   productionError.value = null
   productionSuccess.value = null
@@ -100,7 +97,6 @@ const submitOrdemProducao = async () => {
   }
 
   try {
-    // Correção aqui: Enviando com os nomes de campos que o Serializer espera (maquina_id, funcionario_id)
     const payload = {
       produto_acabado: novaOrdem.value.produto_acabado,
       quantidade_produzir: novaOrdem.value.quantidade_produzir,
@@ -111,7 +107,7 @@ const submitOrdemProducao = async () => {
     }
 
     await axios.post(
-      'http://127.0.0.1:8000/api/fabrica/ordens-producao/',
+      'https://bluepen-back.onrender.com/api/fabrica/ordens-producao/',
       payload,
       { headers: { 'Authorization': `Token ${authStore.token}` } }
     )
@@ -126,7 +122,6 @@ const submitOrdemProducao = async () => {
   }
 }
 
-// --- Lógica de Compra de Insumo ---
 const openAddInsumoModal = () => {
   addInsumoError.value = null
   addInsumoSuccess.value = null
@@ -162,7 +157,7 @@ const submitAddInsumo = async () => {
 
   try {
     await axios.post(
-      'http://127.0.0.1:8000/api/fabrica/movimentos-insumo/',
+      'https://bluepen-back.onrender.com/api/fabrica/movimentos-insumo/',
       {
         insumo_id: selectedInsumoId.value, 
         tipo: 'ENTRADA',
@@ -175,7 +170,7 @@ const submitAddInsumo = async () => {
     
     const valorTotalDespesa = insumoQuantityToAdd.value * insumoCustoUnitario.value;
     await axios.post(
-      'http://127.0.0.1:8000/api/fabrica/fluxo-caixa/',
+      'https://bluepen-back.onrender.com/api/fabrica/fluxo-caixa/',
       {
         tipo: 'SAIDA', 
         categoria: 'INSUMO',
