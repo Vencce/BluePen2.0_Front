@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import penImage from '@/assets/imagens/canetasimples.png'
 
 export const useCartStore = defineStore('cart', {
   state: () => ({
@@ -23,7 +24,8 @@ export const useCartStore = defineStore('cart', {
       if (existingItem) {
         existingItem.quantity++
       } else {
-        this.items.push({ ...produto, quantity: 1 })
+        // Usa a imagem estática local
+        this.items.push({ ...produto, imagem: penImage, quantity: 1 })
       }
     },
     
