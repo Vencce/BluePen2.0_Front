@@ -2,10 +2,11 @@ import { defineStore } from 'pinia'
 import axios from 'axios'
 import { useCartStore } from '@/components/Cart' 
 import router from '@/router'
+import { BASE_URL } from '@/config/api' 
 
 const fetchProfile = async (token) => {
   try {
-    const response = await axios.get('https://bluepen-back.onrender.com/api/profile/', {
+    const response = await axios.get(`${BASE_URL}/api/profile/`, {
       headers: { 'Authorization': `Token ${token}` }
     });
     return response.data.length > 0 ? response.data[0] : null;
@@ -28,14 +29,13 @@ export const useAuthStore = defineStore('auth', {
 
   getters: {
     isAuthenticated: (state) => !!state.token,
-    isSuperuser: (state) => state.user && state.user.is_superuser,
-    avatarUrl: (state) => state.profile?.avatar || null
+    isSuperuser: (state) => state.user && state.user.is_superuser, 
   },
 
   actions: {
     async login(username, password) {
       try {
-        const response = await axios.post('https://bluepen-back.onrender.com/api/login/', {
+        const response = await axios.post(`${BASE_URL}/api/login/`, {
           username: username,
           password: password,
         })
@@ -52,11 +52,11 @@ export const useAuthStore = defineStore('auth', {
         
         localStorage.setItem('authToken', token)
         localStorage.setItem('authUser', JSON.stringify(user))
-        localStorage.setItem('authProfile', JSON.stringify(profileData))
+        localStorage.setItem('authProfile', JSON.stringify(profileData)) 
         
         this.token = token
         this.user = user
-        this.profile = profileData
+        this.profile = profileData 
         
         return user.is_superuser
         
@@ -76,7 +76,7 @@ export const useAuthStore = defineStore('auth', {
 
       localStorage.removeItem('authToken')
       localStorage.removeItem('authUser')
-      localStorage.removeItem('authProfile')
+      localStorage.removeItem('authProfile') 
       
       this.token = null
       this.user = null
@@ -84,11 +84,6 @@ export const useAuthStore = defineStore('auth', {
       
       router.push('/');
     },
-    
-    async updateProfile(newProfileData) {
-      this.profile = newProfileData;
-      localStorage.setItem('authProfile', JSON.stringify(newProfileData));
-    }
   },
   
   persist: false, 

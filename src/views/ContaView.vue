@@ -5,6 +5,7 @@ import axios from 'axios'
 import FooterComponent from '@/components/FooterComponent.vue'
 import HeaderComponentLoja from '@/components/HeaderComponentLoja.vue'
 import { RouterLink } from 'vue-router'
+import { BASE_URL } from '@/config/api'
 
 const authStore = useAuthStore()
 
@@ -12,10 +13,6 @@ const profile = ref(null)
 const pedidos = ref([])
 const loading = ref(true)
 const errorMessage = ref(null)
-
-const avatarFile = ref(null)
-const uploadMessage = ref('')
-const uploadError = ref(null)
 
 const carregarDadosDaConta = async () => {
   loading.value = true
@@ -29,10 +26,10 @@ const carregarDadosDaConta = async () => {
 
   try {
     const [pedidosResponse, profileResponse] = await Promise.all([
-      axios.get('https://bluepen-back.onrender.com/api/pedidos/', {
+      axios.get(`${BASE_URL}/api/pedidos/`, {
         headers: { Authorization: `Token ${authStore.token}` },
       }),
-      axios.get('https://bluepen-back.onrender.com/api/profile/', {
+      axios.get(`${BASE_URL}/api/profile/`, {
         headers: { Authorization: `Token ${authStore.token}` },
       }),
     ])
@@ -44,53 +41,6 @@ const carregarDadosDaConta = async () => {
     errorMessage.value = 'Não foi possível carregar os dados da sua conta.'
   } finally {
     loading.value = false
-  }
-}
-
-const onFileSelected = (event) => {
-  const file = event.target.files[0]
-  if (file) {
-    avatarFile.value = file
-    uploadMessage.value = `Arquivo selecionado: ${file.name}`
-    uploadError.value = null
-  }
-}
-
-const handleAvatarUpload = async () => {
-  uploadError.value = null
-  uploadMessage.value = ''
-
-  if (!avatarFile.value) {
-    uploadError.value = 'Nenhum arquivo selecionado.'
-    return
-  }
-  if (!profile.value?.id) {
-    uploadError.value = 'Perfil do usuário não encontrado.'
-    return
-  }
-
-  const formData = new FormData()
-  formData.append('avatar', avatarFile.value)
-
-  try {
-    const response = await axios.patch(
-      `https://bluepen-back.onrender.com/api/profile/${profile.value.id}/`,
-      formData,
-      {
-        headers: {
-          Authorization: `Token ${authStore.token}`,
-          'Content-Type': 'multipart/form-data',
-        },
-      },
-    )
-
-    uploadMessage.value = 'Avatar atualizado com sucesso!'
-    avatarFile.value = null
-    authStore.updateProfile(response.data)
-    profile.value = response.data
-  } catch (error) {
-    console.error('Erro ao enviar avatar:', error.response?.data)
-    uploadError.value = 'Erro ao enviar imagem.'
   }
 }
 
@@ -132,24 +82,7 @@ onMounted(() => {
       <div v-if="!loading && !errorMessage" class="account-content">
         <section class="account-section profile-section">
           <h2>Meus Dados</h2>
-          <div class="avatar-upload-section">
-            <img :src="authStore.avatarUrl" alt="Avatar" class="profile-avatar-large" />
-            <form @submit.prevent="handleAvatarUpload" class="avatar-form">
-              <label for="avatar-upload" class="btn-file-label">Escolher Foto</label>
-              <input
-                type="file"
-                id="avatar-upload"
-                @change="onFileSelected"
-                accept="image/png, image/jpeg"
-              />
-              <button type="submit" class="btn-avatar-save" :disabled="!avatarFile">
-                Salvar Foto
-              </button>
-            </form>
-            <p v-if="uploadError" class="upload-feedback error">{{ uploadError }}</p>
-            <p v-if="uploadMessage" class="upload-feedback success">{{ uploadMessage }}</p>
-          </div>
-
+          
           <div class="profile-details">
             <p><strong>Usuário:</strong> {{ authStore.user?.username }}</p>
             <p><strong>Email:</strong> {{ authStore.user?.email }}</p>
@@ -248,74 +181,6 @@ h2 {
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
-
-.avatar-upload-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 2rem;
-  padding-bottom: 2rem;
-  border-bottom: 1px solid #eee;
-}
-.profile-avatar-large {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 4px solid #007bff;
-  margin-bottom: 1rem;
-}
-.avatar-form {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-input[type='file'] {
-  display: none;
-}
-.btn-file-label {
-  display: inline-block;
-  padding: 10px 15px;
-  background-color: #6c757d;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-.btn-file-label:hover {
-  background-color: #5a6268;
-}
-.btn-avatar-save {
-  padding: 10px 15px;
-  background-color: #28a745;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-.btn-avatar-save:hover {
-  background-color: #218838;
-}
-.btn-avatar-save:disabled {
-  background-color: #aaa;
-  cursor: not-allowed;
-}
-.upload-feedback {
-  font-size: 0.9rem;
-  margin-top: 10px;
-  font-weight: 600;
-}
-.upload-feedback.success {
-  color: #28a745;
-}
-.upload-feedback.error {
-  color: #dc3545;
-}
-
 .profile-details p {
   font-size: 1.1rem;
   color: #555;
@@ -429,8 +294,5 @@ input[type='file'] {
 }
 .status-cancelado {
   background-color: #dc3545;
-}
-.status-entregue {
-  background-color: #3f51b5;
 }
 </style>

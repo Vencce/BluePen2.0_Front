@@ -9,10 +9,6 @@ const cartStore = useCartStore()
 const fazerLogout = () => {
   authStore.logout()
 }
-
-const setDefaultAvatar = (event) => {
-  event.target.src = 'https://bluepen-back.onrender.com/media/avatars/default.png'
-}
 </script>
 
 <template>
@@ -37,12 +33,7 @@ const setDefaultAvatar = (event) => {
 
         <div class="user-menu">
           <RouterLink to="/minha-conta" class="user-profile">
-            <img
-              :src="authStore.avatarUrl"
-              @error="setDefaultAvatar"
-              alt="Perfil"
-              class="avatar-img"
-            />
+            <span class="avatar-icon">👤</span>
             <span class="username">Minha Conta</span>
           </RouterLink>
           
@@ -163,12 +154,17 @@ const setDefaultAvatar = (event) => {
   border-color: #e2e8f0;
 }
 
-.avatar-img {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid #3b82f6;
+.avatar-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #3b82f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    background-color: #e2e8f0;
 }
 
 .btn-logout {
