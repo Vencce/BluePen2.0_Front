@@ -2,11 +2,12 @@ import { defineStore } from 'pinia'
 import axios from 'axios'
 import { useCartStore } from '@/components/Cart' 
 import router from '@/router'
-import { BASE_URL } from '@/config/api' 
+
+const API_BASE = 'https://bluepen-back.onrender.com'
 
 const fetchProfile = async (token) => {
   try {
-    const response = await axios.get(`${BASE_URL}/api/profile/`, {
+    const response = await axios.get(`${API_BASE}/api/profile/`, {
       headers: { 'Authorization': `Token ${token}` }
     });
     return response.data.length > 0 ? response.data[0] : null;
@@ -35,7 +36,7 @@ export const useAuthStore = defineStore('auth', {
   actions: {
     async login(username, password) {
       try {
-        const response = await axios.post(`${BASE_URL}/api/login/`, {
+        const response = await axios.post(`${API_BASE}/api/login/`, {
           username: username,
           password: password,
         })

@@ -5,7 +5,8 @@ import axios from 'axios'
 import FooterComponent from '@/components/FooterComponent.vue'
 import HeaderComponentLoja from '@/components/HeaderComponentLoja.vue'
 import { RouterLink } from 'vue-router'
-import { BASE_URL } from '@/config/api'
+
+const API_BASE = 'https://bluepen-back.onrender.com'
 
 const authStore = useAuthStore()
 
@@ -26,10 +27,10 @@ const carregarDadosDaConta = async () => {
 
   try {
     const [pedidosResponse, profileResponse] = await Promise.all([
-      axios.get(`${BASE_URL}/api/pedidos/`, {
+      axios.get(`${API_BASE}/api/pedidos/`, {
         headers: { Authorization: `Token ${authStore.token}` },
       }),
-      axios.get(`${BASE_URL}/api/profile/`, {
+      axios.get(`${API_BASE}/api/profile/`, {
         headers: { Authorization: `Token ${authStore.token}` },
       }),
     ])
@@ -181,6 +182,7 @@ h2 {
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
+
 .profile-details p {
   font-size: 1.1rem;
   color: #555;
