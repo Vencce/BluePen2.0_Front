@@ -24,7 +24,6 @@ export const useCartStore = defineStore('cart', {
       if (existingItem) {
         existingItem.quantity++
       } else {
-        // Usa a imagem estática local
         this.items.push({ ...produto, imagem: penImage, quantity: 1 })
       }
     },

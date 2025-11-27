@@ -106,6 +106,12 @@ const router = createRouter({
       component: () => import('../views/ControleQualidadeView.vue'),
       meta: { requiresAuth: true, requiresAdmin: true }
     },
+    {
+      path: '/producao/qr-code',
+      name: 'QRCode',
+      component: () => import('../views/QRcodeView.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true }
+    },
   ]
 })
 
