@@ -1,7 +1,5 @@
 <script setup>
 import AdminLayout from '@/components/AdminLayout.vue'
-
-const linkProjeto = 'https://bluepen.vercel.app/'
 </script>
 
 <template>
@@ -14,12 +12,6 @@ const linkProjeto = 'https://bluepen.vercel.app/'
         <div class="qr-placeholder">
           <img src="../assets/imagens/qrcode.png" class="qr-image" />
         </div>
-
-        <a :href="linkProjeto" target="_blank" class="btn-link-externo">
-          Abrir Loja: {{ linkProjeto }}
-        </a>
-
-        <p class="final-note">Obrigado por avaliar o projeto!</p>
       </div>
     </div>
   </AdminLayout>
@@ -65,24 +57,5 @@ h1 {
   max-width: 90%;
   max-height: 90%;
   object-fit: contain;
-}
-.btn-link-externo {
-  display: block;
-  background-color: #007bff;
-  color: white;
-  padding: 12px 20px;
-  border-radius: 8px;
-  text-decoration: none;
-  font-weight: 600;
-  margin-top: 1.5rem;
-  transition: background-color 0.2s;
-}
-.btn-link-externo:hover {
-  background-color: #0056b3;
-}
-.final-note {
-  margin-top: 2rem;
-  font-style: italic;
-  color: #94a3b8;
 }
 </style>
