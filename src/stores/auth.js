@@ -3,7 +3,7 @@ import axios from 'axios'
 import { useCartStore } from '@/components/Cart' 
 import router from '@/router'
 
-const API_BASE = 'https://bluepen-back.onrender.com'
+const API_BASE = 'https://bluepan-back.onrender.com'
 
 const fetchProfile = async (token) => {
   try {
@@ -18,6 +18,7 @@ const fetchProfile = async (token) => {
 }
 
 export const useAuthStore = defineStore('auth', {
+  // CORREÇÃO CRÍTICA: Inicializa com null. O Pinia Persisted State preenche isso.
   state: () => ({
     token: null,
     user: null,
@@ -47,6 +48,7 @@ export const useAuthStore = defineStore('auth', {
         
         const profileData = await fetchProfile(token);
         
+        // Apenas atualizamos o estado Pinia. Não usamos localStorage.setItem.
         this.token = token
         this.user = user
         this.profile = profileData 
@@ -67,6 +69,7 @@ export const useAuthStore = defineStore('auth', {
       const cartStore = useCartStore()
       cartStore.clearCart() 
 
+      // Apenas reseta o estado. O plugin remove do localStorage automaticamente.
       this.token = null
       this.user = null
       this.profile = null 
@@ -75,5 +78,6 @@ export const useAuthStore = defineStore('auth', {
     },
   },
   
+  // ATIVAÇÃO CRÍTICA: Mantém a persistência do estado
   persist: true, 
 })
