@@ -3,7 +3,7 @@ import axios from 'axios'
 import { useCartStore } from '@/components/Cart' 
 import router from '@/router'
 
-const API_BASE = 'https://bluepen-back.onrender.com'
+const API_BASE = 'https://bluepan-back.onrender.com'
 
 const fetchProfile = async (token) => {
   try {
@@ -19,13 +19,9 @@ const fetchProfile = async (token) => {
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
-    token: localStorage.getItem('authToken') || null,
-    user: localStorage.getItem('authUser') 
-          ? JSON.parse(localStorage.getItem('authUser')) 
-          : null,
-    profile: localStorage.getItem('authProfile') 
-          ? JSON.parse(localStorage.getItem('authProfile')) 
-          : null,
+    token: null,
+    user: null,
+    profile: null,
   }),
 
   getters: {
@@ -51,10 +47,6 @@ export const useAuthStore = defineStore('auth', {
         
         const profileData = await fetchProfile(token);
         
-        localStorage.setItem('authToken', token)
-        localStorage.setItem('authUser', JSON.stringify(user))
-        localStorage.setItem('authProfile', JSON.stringify(profileData)) 
-        
         this.token = token
         this.user = user
         this.profile = profileData 
@@ -75,10 +67,6 @@ export const useAuthStore = defineStore('auth', {
       const cartStore = useCartStore()
       cartStore.clearCart() 
 
-      localStorage.removeItem('authToken')
-      localStorage.removeItem('authUser')
-      localStorage.removeItem('authProfile') 
-      
       this.token = null
       this.user = null
       this.profile = null 
@@ -87,5 +75,5 @@ export const useAuthStore = defineStore('auth', {
     },
   },
   
-  persist: false, 
+  persist: true, 
 })
