@@ -3,7 +3,7 @@ import axios from 'axios'
 import { useCartStore } from '@/components/Cart' 
 import router from '@/router'
 
-const API_BASE = 'https://bluepan-back.onrender.com'
+const API_BASE = 'https://bluepen-back.onrender.com'
 
 const fetchProfile = async (token) => {
   try {
