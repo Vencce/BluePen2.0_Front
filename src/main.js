@@ -12,8 +12,6 @@ const pinia = createPinia()
 
 pinia.use(piniaPluginPersistedState)
 
-app.use(createPinia())
-
 app.use(pinia)
 
 app.use(router)
