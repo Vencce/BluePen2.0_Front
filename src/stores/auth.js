@@ -46,7 +46,7 @@ export const useAuthStore = defineStore('auth', {
         }
         
         const profileData = await fetchProfile(token);
-        
+      
         this.token = token
         this.user = user
         this.profile = profileData 
@@ -66,7 +66,6 @@ export const useAuthStore = defineStore('auth', {
     logout() {
       const cartStore = useCartStore()
       cartStore.clearCart() 
-
       this.token = null
       this.user = null
       this.profile = null 
