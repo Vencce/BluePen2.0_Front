@@ -85,14 +85,14 @@ onMounted(() => {
           <h2>Meus Dados</h2>
           
           <div class="profile-details">
-            <p><strong>Usuário:</strong> {{ authStore.user?.username }}</p>
-            <p><strong>Email:</strong> {{ authStore.user?.email }}</p>
-            <p><strong>Telefone:</strong> {{ profile?.telefone || 'Não cadastrado' }}</p>
+            <p><strong class="detail-label">Usuário:</strong> {{ authStore.user?.username }}</p>
+            <p><strong class="detail-label">Email:</strong> {{ authStore.user?.email }}</p>
+            <p><strong class="detail-label">Telefone:</strong> {{ profile?.telefone || 'Não cadastrado' }}</p>
             <p>
-              <strong>Data de Nasc.:</strong> {{ profile?.data_nascimento || 'Não cadastrada' }}
+              <strong class="detail-label">Data de Nasc.:</strong> {{ profile?.data_nascimento || 'Não cadastrada' }}
             </p>
             <div class="profile-actions">
-              <button class="btn-edit-profile (desabilitado)">Editar Perfil</button>
+              <button class="btn-edit-profile btn-desabilitado">Editar Perfil</button>
               <RouterLink to="/meus-enderecos" class="btn-edit-edereco">
                 Gerenciar Endereços
               </RouterLink>
@@ -122,15 +122,15 @@ onMounted(() => {
               </thead>
               <tbody>
                 <tr v-for="pedido in pedidos" :key="pedido.id">
-                  <td>#{{ pedido.id }}</td>
-                  <td>{{ formatDateTime(pedido.created_at) }}</td>
-                  <td>{{ formatCurrency(pedido.total_pedido) }}</td>
-                  <td>
+                  <td data-label="ID">#{{ pedido.id }}</td>
+                  <td data-label="Data">{{ formatDateTime(pedido.created_at) }}</td>
+                  <td data-label="Total">{{ formatCurrency(pedido.total_pedido) }}</td>
+                  <td data-label="Status">
                     <span :class="['status-badge', `status-${pedido.status}`]">
                       {{ pedido.status }}
                     </span>
                   </td>
-                  <td>{{ calcularTotalItens(pedido.itens) }}</td>
+                  <td data-label="Quantidade">{{ calcularTotalItens(pedido.itens) }}</td>
                 </tr>
               </tbody>
             </table>
@@ -160,7 +160,7 @@ onMounted(() => {
 h1 {
   font-size: 2.5rem;
   font-weight: 600;
-  color: #333;
+  color: #1e293b;
   text-align: center;
   margin-bottom: 2rem;
 }
@@ -179,26 +179,32 @@ h2 {
 .account-section {
   background-color: white;
   padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.05);
 }
 
 .profile-details p {
   font-size: 1.1rem;
   color: #555;
   margin-bottom: 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px dotted #eee;
+  padding-bottom: 5px;
 }
-.profile-details p strong {
+.detail-label {
   color: #333;
   min-width: 120px;
-  display: inline-block;
 }
 
 .profile-actions {
   display: flex;
+  gap: 10px;
+  margin-top: 1.5rem;
+  border-top: 1px solid #eee;
+  padding-top: 1.5rem;
 }
 .btn-edit-profile {
-  margin-top: 1rem;
   padding: 10px 20px;
   background-color: #007bff;
   color: white;
@@ -207,27 +213,26 @@ h2 {
   cursor: pointer;
   font-weight: 600;
 }
-.btn-edit-profile.desabilitado {
+.btn-desabilitado {
   background-color: #6c757d;
   cursor: not-allowed;
+  opacity: 0.8;
 }
-.btn-edit-profile:hover {
-  background-color: #036ee0;
-}
-
 .btn-edit-edereco {
-  margin: 1rem 0 0 1rem;
-  padding: 8px 20px;
-  background-color: #007bff;
+  padding: 10px 20px;
+  background-color: #10b981;
   color: white;
   border: none;
   border-radius: 5px;
   cursor: pointer;
   font-weight: 600;
   text-decoration: none;
+  display: flex;
+  align-items: center;
+  transition: background-color 0.2s;
 }
 .btn-edit-edereco:hover {
-  background-color: #036ee0;
+  background-color: #0d966e;
 }
 
 .error-message,
@@ -275,6 +280,7 @@ h2 {
 .orders-table tbody tr:hover {
   background-color: #f1f1f1;
 }
+
 .status-badge {
   padding: 4px 10px;
   border-radius: 12px;
@@ -284,17 +290,43 @@ h2 {
   color: white;
   white-space: nowrap;
 }
-.status-pendente {
-  background-color: #ffc107;
-  color: #333;
-}
-.status-aprovado {
-  background-color: #28a745;
-}
-.status-enviado {
-  background-color: #17a2b8;
-}
-.status-cancelado {
-  background-color: #dc3545;
+.status-pendente { background-color: #ffc107; color: #333; }
+.status-aprovado { background-color: #28a745; }
+.status-enviado { background-color: #17a2b8; }
+.status-entregue { background-color: #007bff; }
+.status-cancelado { background-color: #dc3545; }
+
+@media (max-width: 600px) {
+  .account-container {
+    padding: 1rem;
+  }
+  .orders-table th {
+    display: none;
+  }
+  .orders-table tr {
+    display: block;
+    margin-bottom: 15px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 10px;
+    background-color: white;
+  }
+  .orders-table td {
+    display: block;
+    text-align: left;
+    border-bottom: none;
+    padding: 5px 0;
+  }
+  .orders-table td::before {
+    content: attr(data-label);
+    font-weight: bold;
+    color: #495057;
+    margin-right: 10px;
+    display: inline-block;
+    min-width: 70px;
+  }
+  .orders-table td:last-child {
+    border-bottom: none;
+  }
 }
 </style>
