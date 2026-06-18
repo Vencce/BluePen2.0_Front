@@ -189,7 +189,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="page-wrapper">
+  <div class="endereco-page-wrapper">
     <HeaderComponentLoja />
     
     <main class="endereco-container">
@@ -348,12 +348,14 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.page-wrapper {
+.endereco-page-wrapper {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
   background-color: #f4f7f6;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  margin: 0;
+  padding: 0;
 }
 
 .endereco-container {
