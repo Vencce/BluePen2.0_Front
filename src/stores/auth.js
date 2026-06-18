@@ -18,7 +18,6 @@ const fetchProfile = async (token) => {
 }
 
 export const useAuthStore = defineStore('auth', {
-  // CORREÇÃO CRÍTICA: Inicializa com null. O Pinia Persisted State preenche isso.
   state: () => ({
     token: null,
     user: null,
@@ -31,13 +30,23 @@ export const useAuthStore = defineStore('auth', {
   },
 
   actions: {
-    async login(username, password) {
+    async login(username, password, totp_code = null) {
       try {
-        const response = await axios.post(`${API_BASE}/api/login/`, {
+        const payload = {
           username: username,
           password: password,
-        })
+        }
         
+        if (totp_code) {
+          payload.totp_code = totp_code
+        }
+
+        const response = await axios.post(`${API_BASE}/api/login/`, payload)
+        
+        if (response.data.requires_2fa) {
+          return { requires_2fa: true }
+        }
+
         const token = response.data.token
         const user = {
             id: response.data.user_id,
@@ -48,7 +57,6 @@ export const useAuthStore = defineStore('auth', {
         
         const profileData = await fetchProfile(token);
         
-        // Apenas atualizamos o estado Pinia. Não usamos localStorage.setItem.
         this.token = token
         this.user = user
         this.profile = profileData 
@@ -58,7 +66,7 @@ export const useAuthStore = defineStore('auth', {
       } catch (error) {
         console.error('Erro no login:', error.response?.data || error.message) 
         if (error.response && error.response.status === 400) {
-          return { error: 'Usuário ou senha inválidos.' }
+          return { error: error.response.data.error || 'Usuário, senha ou código inválidos.' }
         } else {
           return { error: 'Erro ao tentar conectar.' }
         }
@@ -69,7 +77,6 @@ export const useAuthStore = defineStore('auth', {
       const cartStore = useCartStore()
       cartStore.clearCart() 
 
-      // Apenas reseta o estado. O plugin remove do localStorage automaticamente.
       this.token = null
       this.user = null
       this.profile = null 
@@ -78,6 +85,5 @@ export const useAuthStore = defineStore('auth', {
     },
   },
   
-  // ATIVAÇÃO CRÍTICA: Mantém a persistência do estado
   persist: true, 
 })

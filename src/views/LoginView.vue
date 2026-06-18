@@ -4,8 +4,10 @@ import { RouterLink, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import roboCanetaImg from '../assets/imagens/robocaneta.png'
 
+const step = ref(1)
 const username = ref('')
 const password = ref('')
+const totpCode = ref('')
 const errorMessage = ref('')
 const loading = ref(false)
 
@@ -17,9 +19,12 @@ const fazerLogin = async () => {
   loading.value = true
 
   try {
-    const loginResult = await authStore.login(username.value, password.value)
+    const loginResult = await authStore.login(username.value, password.value, step.value === 2 ? totpCode.value : null)
 
-    if (loginResult.error) {
+    if (loginResult && loginResult.requires_2fa) {
+      step.value = 2
+      errorMessage.value = ''
+    } else if (loginResult && loginResult.error) {
       errorMessage.value = loginResult.error
     } else if (loginResult === true) {
       router.push('/admin-dashboard')
@@ -51,54 +56,80 @@ const fazerLogin = async () => {
       <div class="form-container">
         <div class="header-text">
           <h1>Bem-vindo de volta!</h1>
-          <p class="subtitle">Por favor, insira seus dados para entrar.</p>
+          <p class="subtitle" v-if="step === 1">Por favor, insira seus dados para entrar.</p>
+          <p class="subtitle" v-if="step === 2">Insira o código gerado pelo seu aplicativo autenticador.</p>
         </div>
 
         <form @submit.prevent="fazerLogin">
-          <div class="input-group">
-            <label for="username">Usuário</label>
-            <div class="input-wrapper">
-              <span class="icon">👤</span>
-              <input 
-                id="username" 
-                v-model="username" 
-                type="text" 
-                placeholder="Seu nome de usuário" 
-                required 
-              />
+          
+          <div v-if="step === 1">
+            <div class="input-group">
+              <label for="username">Usuário</label>
+              <div class="input-wrapper">
+                <span class="icon">👤</span>
+                <input 
+                  id="username" 
+                  v-model="username" 
+                  type="text" 
+                  placeholder="Seu nome de usuário" 
+                  required 
+                />
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label for="password">Senha</label>
+              <div class="input-wrapper">
+                <span class="icon">🔒</span>
+                <input 
+                  id="password" 
+                  v-model="password" 
+                  type="password" 
+                  placeholder="••••••••" 
+                  required 
+                />
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <router-link to="/recuperar-senha" class="forgot-link">
+                Esqueceu a senha?
+              </router-link>
             </div>
           </div>
 
-          <div class="input-group">
-            <label for="password">Senha</label>
-            <div class="input-wrapper">
-              <span class="icon">🔒</span>
-              <input 
-                id="password" 
-                v-model="password" 
-                type="password" 
-                placeholder="••••••••" 
-                required 
-              />
+          <div v-if="step === 2">
+            <div class="input-group">
+              <label for="totpCode">Código 2FA (6 dígitos)</label>
+              <div class="input-wrapper">
+                <span class="icon">🔐</span>
+                <input 
+                  id="totpCode" 
+                  v-model="totpCode" 
+                  type="text" 
+                  placeholder="000000"
+                  maxlength="6"
+                  required 
+                />
+              </div>
             </div>
-          </div>
-
-          <div class="form-actions">
-            <router-link to="/recuperar-senha" class="forgot-link">
-              Esqueceu a senha?
-            </router-link>
           </div>
 
           <div v-if="errorMessage" class="alert-error">
             {{ errorMessage }}
           </div>
 
-          <button type="submit" class="btn-login" :disabled="loading">
-            <span v-if="!loading">Entrar</span>
-            <span v-else class="loader"></span>
-          </button>
+          <div class="button-group">
+            <button v-if="step === 2" type="button" class="btn-back" @click="step = 1; errorMessage = ''">
+              Voltar
+            </button>
+            <button type="submit" class="btn-login" :disabled="loading" :class="{'full-width': step === 1}">
+              <span v-if="!loading">{{ step === 1 ? 'Entrar' : 'Verificar' }}</span>
+              <span v-else class="loader"></span>
+            </button>
+          </div>
 
-          <p class="register-text">
+          <p class="register-text" v-if="step === 1">
             Não tem uma conta? 
             <RouterLink to="/cadastro" class="register-link">Cadastre-se</RouterLink>
           </p>
@@ -288,8 +319,13 @@ const fazerLogin = async () => {
   border: 1px solid #fecaca;
 }
 
+.button-group {
+  display: flex;
+  gap: 10px;
+}
+
 .btn-login {
-  width: 100%;
+  flex: 1;
   padding: 12px;
   background-color: #2563eb;
   color: white;
@@ -303,6 +339,28 @@ const fazerLogin = async () => {
   justify-content: center;
   align-items: center;
   height: 48px;
+}
+
+.btn-login.full-width {
+  width: 100%;
+}
+
+.btn-back {
+  padding: 12px;
+  background-color: #f1f5f9;
+  color: #334155;
+  font-size: 1rem;
+  font-weight: 600;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  height: 48px;
+  min-width: 100px;
+}
+
+.btn-back:hover {
+  background-color: #e2e8f0;
 }
 
 .btn-login:hover {
