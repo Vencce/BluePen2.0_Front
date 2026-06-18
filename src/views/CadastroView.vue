@@ -4,10 +4,12 @@ import { useRouter, RouterLink } from 'vue-router'
 import axios from 'axios'
 import roboCanetaImg from '../assets/imagens/robocaneta.png' 
 
+const step = ref(1)
 const username = ref('')
 const email = ref('')
 const password = ref('')
 const password_confirm = ref('')
+const otpCode = ref('')
 const errorMessage = ref('')
 const successMessage = ref('')
 const loading = ref(false)
@@ -33,12 +35,13 @@ const fazerCadastro = async () => {
       password_confirm: password_confirm.value,
     }
 
-    await axios.post('https://bluepen-back.onrender.com/api/cadastro/', payload)
+    await axios.post('https://bluepen-back.onrender.com/api/register/', payload)
 
-    successMessage.value = 'Cadastro realizado com sucesso! Redirecionando...'
+    successMessage.value = 'Cadastro pré-aprovado! Verifique a caixa de entrada do seu email.'
 
     setTimeout(() => {
-      router.push('/')
+      step.value = 2
+      successMessage.value = ''
     }, 2000)
   } catch (error) {
     console.error('Erro no cadastro:', error.response?.data)
@@ -66,6 +69,35 @@ const fazerCadastro = async () => {
     loading.value = false
   }
 }
+
+const verificarEmail = async () => {
+  errorMessage.value = ''
+  successMessage.value = ''
+  loading.value = true
+
+  try {
+    const payload = {
+      email: email.value,
+      otp: otpCode.value,
+    }
+
+    await axios.post('https://bluepen-back.onrender.com/api/auth/verify-email/', payload)
+
+    successMessage.value = 'Email verificado com sucesso! Redirecionando para o login...'
+
+    setTimeout(() => {
+      router.push('/')
+    }, 2000)
+  } catch (error) {
+    if (error.response && error.response.data && error.response.data.error) {
+      errorMessage.value = error.response.data.error
+    } else {
+      errorMessage.value = 'Ocorreu um erro ao verificar o código.'
+    }
+  } finally {
+    loading.value = false
+  }
+}
 </script>
 
 <template>
@@ -85,10 +117,11 @@ const fazerCadastro = async () => {
       <div class="form-container">
         <div class="header-text">
           <h1>Crie sua conta</h1>
-          <p class="subtitle">Preencha os dados abaixo para começar.</p>
+          <p class="subtitle" v-if="step === 1">Preencha os dados abaixo para começar.</p>
+          <p class="subtitle" v-if="step === 2">Insira o código de 6 dígitos enviado para {{ email }}.</p>
         </div>
 
-        <form @submit.prevent="fazerCadastro">
+        <form v-if="step === 1" @submit.prevent="fazerCadastro">
           
           <div class="input-group">
             <label for="username">Usuário</label>
@@ -163,6 +196,42 @@ const fazerCadastro = async () => {
             <RouterLink to="/" class="login-link">Fazer Login</RouterLink>
           </p>
         </form>
+
+        <form v-if="step === 2" @submit.prevent="verificarEmail">
+          
+          <div class="input-group">
+            <label for="otpCode">Código de Verificação</label>
+            <div class="input-wrapper">
+              <span class="icon">📩</span>
+              <input 
+                id="otpCode"
+                v-model="otpCode" 
+                type="text" 
+                maxlength="6"
+                placeholder="000000" 
+                required 
+              />
+            </div>
+          </div>
+
+          <div v-if="errorMessage" class="alert-message error">
+            {{ errorMessage }}
+          </div>
+          <div v-if="successMessage" class="alert-message success">
+            {{ successMessage }}
+          </div>
+
+          <div class="button-group">
+            <button type="button" class="btn-back" @click="step = 1; errorMessage = ''">
+              Voltar
+            </button>
+            <button type="submit" class="btn-submit" :disabled="loading">
+              <span v-if="!loading">Ativar Conta</span>
+              <span v-else class="loader"></span>
+            </button>
+          </div>
+        </form>
+
       </div>
     </div>
   </div>
@@ -312,6 +381,17 @@ const fazerCadastro = async () => {
   color: #334155;
   transition: all 0.2s ease;
   outline: none;
+  letter-spacing: normal;
+}
+
+#otpCode {
+  letter-spacing: 4px;
+  font-size: 1.2rem;
+  text-align: center;
+  padding-left: 12px; 
+}
+#otpCode + .icon {
+  display: none; 
 }
 
 .input-wrapper input:focus {
@@ -321,6 +401,7 @@ const fazerCadastro = async () => {
 
 .input-wrapper input::placeholder {
   color: #94a3b8;
+  letter-spacing: normal;
 }
 
 .alert-message {
@@ -342,7 +423,13 @@ const fazerCadastro = async () => {
   border: 1px solid #a7f3d0;
 }
 
+.button-group {
+  display: flex;
+  gap: 10px;
+}
+
 .btn-submit {
+  flex: 1;
   width: 100%;
   padding: 12px;
   background-color: #2563eb;
@@ -357,6 +444,24 @@ const fazerCadastro = async () => {
   justify-content: center;
   align-items: center;
   height: 48px;
+}
+
+.btn-back {
+  padding: 12px;
+  background-color: #f1f5f9;
+  color: #334155;
+  font-size: 1rem;
+  font-weight: 600;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  height: 48px;
+  min-width: 100px;
+}
+
+.btn-back:hover {
+  background-color: #e2e8f0;
 }
 
 .btn-submit:hover {
