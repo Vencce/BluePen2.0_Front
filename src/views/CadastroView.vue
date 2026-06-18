@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { useRouter, RouterLink } from 'vue-router'
 import axios from 'axios'
-import roboCanetaImg from '../assets/imagens/robocaneta.png' 
+import roboCanetaImg from '../assets/imagens/robocaneta.png'
 
 const step = ref(1)
 const username = ref('')
@@ -44,7 +44,6 @@ const fazerCadastro = async () => {
       successMessage.value = ''
     }, 2000)
   } catch (error) {
-    console.error('Erro no cadastro:', error.response?.data)
     if (error.response && error.response.data) {
       const erros = error.response.data
       if (erros.username) {
@@ -122,17 +121,16 @@ const verificarEmail = async () => {
         </div>
 
         <form v-if="step === 1" @submit.prevent="fazerCadastro">
-          
           <div class="input-group">
             <label for="username">Usuário</label>
             <div class="input-wrapper">
               <span class="icon">👤</span>
-              <input 
+              <input
                 id="username"
-                v-model="username" 
-                type="text" 
-                placeholder="Escolha um nome de usuário" 
-                required 
+                v-model="username"
+                type="text"
+                placeholder="Escolha um nome de usuário"
+                required
               />
             </div>
           </div>
@@ -141,12 +139,12 @@ const verificarEmail = async () => {
             <label for="email">Email</label>
             <div class="input-wrapper">
               <span class="icon">✉️</span>
-              <input 
+              <input
                 id="email"
-                v-model="email" 
-                type="email" 
-                placeholder="seu@email.com" 
-                required 
+                v-model="email"
+                type="email"
+                placeholder="seu@email.com"
+                required
               />
             </div>
           </div>
@@ -155,12 +153,12 @@ const verificarEmail = async () => {
             <label for="password">Senha</label>
             <div class="input-wrapper">
               <span class="icon">🔒</span>
-              <input 
+              <input
                 id="password"
-                v-model="password" 
-                type="password" 
-                placeholder="••••••••" 
-                required 
+                v-model="password"
+                type="password"
+                placeholder="••••••••"
+                required
               />
             </div>
           </div>
@@ -169,12 +167,12 @@ const verificarEmail = async () => {
             <label for="password_confirm">Confirmar Senha</label>
             <div class="input-wrapper">
               <span class="icon">🛡️</span>
-              <input 
+              <input
                 id="password_confirm"
-                v-model="password_confirm" 
-                type="password" 
-                placeholder="Repita a senha" 
-                required 
+                v-model="password_confirm"
+                type="password"
+                placeholder="Repita a senha"
+                required
               />
             </div>
           </div>
@@ -192,24 +190,23 @@ const verificarEmail = async () => {
           </button>
 
           <p class="login-text">
-            Já tem uma conta? 
+            Já tem uma conta?
             <RouterLink to="/" class="login-link">Fazer Login</RouterLink>
           </p>
         </form>
 
         <form v-if="step === 2" @submit.prevent="verificarEmail">
-          
           <div class="input-group">
             <label for="otpCode">Código de Verificação</label>
             <div class="input-wrapper">
               <span class="icon">📩</span>
-              <input 
+              <input
                 id="otpCode"
-                v-model="otpCode" 
-                type="text" 
+                v-model="otpCode"
+                type="text"
                 maxlength="6"
-                placeholder="000000" 
-                required 
+                placeholder="000000"
+                required
               />
             </div>
           </div>
@@ -273,7 +270,7 @@ const verificarEmail = async () => {
 .banner-img {
   width: auto;
   max-width: 90%;
-  max-height: 50vh; 
+  max-height: 50vh;
   object-fit: contain;
   filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.1));
   animation: float 6s ease-in-out infinite;
@@ -318,8 +315,8 @@ const verificarEmail = async () => {
   background-color: white;
   position: relative;
   z-index: 10;
-  overflow-y: auto; 
-  height: 100vh; 
+  overflow-y: auto;
+  height: 100vh;
 }
 
 .form-container {
@@ -388,10 +385,10 @@ const verificarEmail = async () => {
   letter-spacing: 4px;
   font-size: 1.2rem;
   text-align: center;
-  padding-left: 12px; 
+  padding-left: 12px;
 }
 #otpCode + .icon {
-  display: none; 
+  display: none;
 }
 
 .input-wrapper input:focus {
@@ -516,12 +513,12 @@ const verificarEmail = async () => {
   .banner-side {
     display: none;
   }
-  
+
   .form-side {
     width: 100%;
     padding: 1.5rem;
   }
-  
+
   .form-container {
     padding: 0 1rem;
     margin-top: 2rem;
@@ -538,11 +535,11 @@ const verificarEmail = async () => {
     max-height: 65vh;
     margin-bottom: 1rem;
   }
-  
+
   .banner-text h2 {
     font-size: 1.5rem;
   }
-  
+
   .form-container {
     padding-bottom: 2rem;
   }
