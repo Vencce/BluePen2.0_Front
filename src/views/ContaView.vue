@@ -43,7 +43,7 @@ const carregarDadosDaConta = async () => {
     pedidos.value = pedidosResponse.data
     profile.value = profileResponse.data.length > 0 ? profileResponse.data[0] : null
   } catch (error) {
-    console.error('Erro ao carregar dados da conta:', error.response?.data || error.message)
+    console.error(error)
     errorMessage.value = 'Não foi possível carregar os dados da sua conta.'
   } finally {
     loading.value = false
@@ -152,7 +152,10 @@ onMounted(() => {
           <h2>Segurança da Conta</h2>
           
           <div v-if="profile?.is_2fa_enabled" class="security-status-active">
-            <p>A <strong>Autenticação de Dois Fatores (2FA)</strong> está ativada. Sua conta está protegida.</p>
+            <div class="active-info">
+              <p>✅ <strong>Autenticação de Dois Fatores (2FA)</strong> ativada.</p>
+              <span class="security-subtitle">Sua conta está protegida e o login exige a verificação.</span>
+            </div>
             <button @click="desativar2FA" class="btn-disable-2fa">Desativar 2FA</button>
           </div>
           
@@ -316,19 +319,35 @@ h2 {
   background-color: #0d966e;
 }
 
-/* Estilos da nova seção de Segurança (2FA) */
 .security-status-active {
-  padding: 1rem;
-  background-color: #d1fae5;
-  border-left: 5px solid #10b981;
-  border-radius: 4px;
+  padding: 1.5rem;
+  background-color: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  border-left: 6px solid #10b981;
+  border-radius: 8px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.active-info p {
+  color: #065f46;
+  font-size: 1.1rem;
+  margin: 0 0 0.25rem 0;
+}
+
+.active-info strong {
+  color: #047857;
+}
+
+.security-subtitle {
+  color: #059669;
+  font-size: 0.9rem;
 }
 
 .security-status-inactive {
-  padding: 1rem;
+  padding: 1.5rem;
   background-color: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
@@ -351,7 +370,7 @@ h2 {
 }
 
 .btn-disable-2fa {
-  padding: 8px 15px;
+  padding: 10px 20px;
   background-color: #ef4444;
   color: white;
   border: none;
