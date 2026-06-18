@@ -4,6 +4,8 @@ import { useRouter, RouterLink } from 'vue-router'
 import axios from 'axios'
 import roboCanetaImg from '../assets/imagens/robocaneta.png'
 
+const API_BASE = 'https://bluepen-back.onrender.com'
+
 const step = ref(1)
 const username = ref('')
 const email = ref('')
@@ -35,7 +37,7 @@ const fazerCadastro = async () => {
       password_confirm: password_confirm.value,
     }
 
-    await axios.post('https://bluepen-back.onrender.com/api/register/', payload)
+    await axios.post(`${API_BASE}/api/register/`, payload)
 
     successMessage.value = 'Cadastro pré-aprovado! Verifique a caixa de entrada do seu email.'
 
@@ -80,7 +82,7 @@ const verificarEmail = async () => {
       otp: otpCode.value,
     }
 
-    await axios.post('https://bluepen-back.onrender.com/api/auth/verify-email/', payload)
+    await axios.post(`${API_BASE}/api/auth/verify-email/`, payload)
 
     successMessage.value = 'Email verificado com sucesso! Redirecionando para o login...'
 
@@ -387,6 +389,7 @@ const verificarEmail = async () => {
   text-align: center;
   padding-left: 12px;
 }
+
 #otpCode + .icon {
   display: none;
 }
